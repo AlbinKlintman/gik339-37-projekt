@@ -1,52 +1,36 @@
-// Instead, use the API key directly (since it's a public key anyway)
-const UNSPLASH_ACCESS_KEY = 'NOgDJ-n-JVMpuk-5NArfVsraj_Z_nUJMgZKdxCqzmw4';
-
 // Add this at the top of script.js
-const imageCache = new Map();
-
-// Add this to determine if we're in development mode
+const API_BASE_URL = 'http://localhost:3000'; // You might need to update this port
 const isDevelopment = window.location.hostname === 'localhost' || 
                      window.location.hostname === '127.0.0.1';
 
 // Function to fetch image from Unsplash
-async function getAnimalImage(query) {
+async function getAnimalImage(query, retries = 3) {
   console.log(`🔍 Getting image for: ${query}`);
   
-  // Check cache first
-  if (imageCache.has(query)) {
-    console.log(`📦 Found in cache for: ${query}`);
-    return imageCache.get(query);
-  }
-
-  console.log(`🌐 Fetching from Unsplash API for: ${query}`);
-  try {
-    const response = await fetch(
-      `https://api.unsplash.com/photos/random?query=${query}&orientation=landscape`,
-      {
-        headers: {
-          'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`
-        }
+  while (retries > 0) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/animal-image/${encodeURIComponent(query)}`);
+      const data = await response.json();
+      
+      if (data.imageUrl) {
+        return data.imageUrl;
       }
-    );
-    
-    if (!response.ok) throw new Error('Failed to fetch image');
-    
-    const data = await response.json();
-    const imageUrl = data.urls.regular;
-    
-    console.log(`✅ Successfully fetched Unsplash image for: ${query}`);
-    console.log(`💾 Caching new image for: ${query}`);
-    imageCache.set(query, imageUrl);
-    saveImageCache(); // Save to localStorage after each new cache
-    return imageUrl;
-  } catch (error) {
-    console.error(`❌ Error fetching Unsplash image for ${query}:`, error);
-    // Use placeholder if fetch fails
-    const placeholderUrl = 'https://placehold.co/800x400/e9ecef/adb5bd?text=Animal+Image';
-    console.log(`⚠️ Using placeholder image for: ${query}`);
-    imageCache.set(query, placeholderUrl);
-    return placeholderUrl;
+      
+      console.log(`Retrying image fetch for ${query}, ${retries - 1} attempts remaining`);
+      retries--;
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s between retries
+      
+    } catch (error) {
+      console.error(`❌ Error fetching image for ${query}:`, error);
+      retries--;
+      if (retries === 0) {
+        return 'https://placehold.co/800x400/e9ecef/adb5bd?text=Image+Not+Found';
+      }
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
   }
+  
+  return 'https://placehold.co/800x400/e9ecef/adb5bd?text=Image+Not+Found';
 }
 
 // Mock data for animal species
@@ -59,58 +43,24 @@ const mockAnimals = [
     diet: "carnivore",
     category: "mammals",
     habitat: "terrestrial",
-    lifespan: 15
+    lifespan: 15,
+    imageUrl: null
   },
-  {
-    id: 2,
-    name: "Emperor Penguin",
-    species: "Aptenodytes forsteri",
-    funFact: "Can dive up to 500 meters deep and hold their breath for 20 minutes!",
-    diet: "carnivore",
-    category: "birds",
-    habitat: "aquatic",
-    lifespan: 20
-  },
-  {
-    id: 3,
-    name: "Giant Pacific Octopus",
-    species: "Enteroctopus dofleini",
-    funFact: "Has three hearts and can change color in less than a second!",
-    diet: "carnivore",
-    category: "marine",
-    habitat: "aquatic",
-    lifespan: 5
-  },
-  {
-    id: 4,
-    name: "Red-Eyed Tree Frog",
-    species: "Agalychnis callidryas",
-    funFact: "They sleep during the day with their eyes closed, showing only white!",
-    diet: "carnivore",
-    category: "reptiles",
-    habitat: "terrestrial",
-    lifespan: 5
-  },
-  {
-    id: 5,
-    name: "Monarch Butterfly",
-    species: "Danaus plexippus",
-    funFact: "They can travel up to 3000 miles during migration!",
-    diet: "herbivore",
-    category: "insects",
-    habitat: "aerial",
-    lifespan: 1
-  }
 ];
 
 // Mock API functions
 async function fetchAnimals() {
   await new Promise(resolve => setTimeout(resolve, 500));
   
-  // Only fetch images if the URL is missing or invalid
+  // Fetch images for animals without URLs
   for (let animal of mockAnimals) {
-    if (!animal.imageUrl || animal.imageUrl.includes('placehold.co')) {
-      animal.imageUrl = await getAnimalImage(animal.name.toLowerCase());
+    if (!animal.imageUrl) {
+      animal.imageUrl = await getAnimalImage(animal.name);
+      if (animal.imageUrl.includes('placehold.co')) {
+        console.error(`⚠️ Failed to load image for ${animal.name}, using placeholder`);
+      } else {
+        console.log(`✅ Loaded image for ${animal.name}:`, animal.imageUrl);
+      }
     }
   }
   
@@ -119,11 +69,9 @@ async function fetchAnimals() {
 
 async function addAnimal(animal) {
   await new Promise(resolve => setTimeout(resolve, 500));
-  const imageUrl = await getAnimalImage(animal.name.toLowerCase());
   const newAnimal = { 
     ...animal, 
-    id: mockAnimals.length + 1,
-    imageUrl: imageUrl || 'https://placehold.co/800x400/e9ecef/adb5bd?text=No+Image+Available'
+    id: mockAnimals.length + 1
   };
   mockAnimals.push(newAnimal);
   return newAnimal;
@@ -149,44 +97,21 @@ async function deleteAnimal(id) {
   throw new Error('Species not found');
 }
 
-// Add these functions to manage the cache
-function loadImageCache() {
-  try {
-    const cached = localStorage.getItem('animalImageCache');
-    if (cached) {
-      const entries = JSON.parse(cached);
-      entries.forEach(([key, value]) => imageCache.set(key, value));
-      console.log(`📥 Loaded ${entries.length} images from cache`);
-    } else {
-      console.log('💭 No existing image cache found');
-    }
-  } catch (error) {
-    console.error('❌ Error loading image cache:', error);
-  }
-}
-
-function saveImageCache() {
-  try {
-    const entries = Array.from(imageCache.entries());
-    localStorage.setItem('animalImageCache', JSON.stringify(entries));
-    console.log(`📤 Saved ${entries.length} images to cache`);
-  } catch (error) {
-    console.error('❌ Error saving image cache:', error);
-  }
-}
-
 // Load cache when the page loads
 document.addEventListener('DOMContentLoaded', () => {
-  loadImageCache();
   loadAnimals();
   setupEventListeners();
 });
 
 async function loadAnimals() {
   try {
+    const animalList = document.getElementById('animalList');
+    animalList.innerHTML = '<div class="col-12 text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+    
     const animals = await fetchAnimals();
     displayAnimals(animals);
   } catch (error) {
+    console.error('Error loading animals:', error);
     showFeedback('Error loading species: ' + error.message);
   }
 }
@@ -194,10 +119,17 @@ async function loadAnimals() {
 function displayAnimals(animals) {
   const animalList = document.getElementById('animalList');
   animalList.innerHTML = animals.map(animal => `
-    <div class="col-lg-4 col-md-6">
+    <div class="col-lg-4 col-md-6 mb-4">
       <div class="card h-100 category-${animal.category} habitat-${animal.habitat}" 
            onclick="showAnimalDetails(${animal.id})" 
            style="cursor: pointer;">
+        <div class="card-img-container" style="height: 200px; overflow: hidden;">
+          <img src="${animal.imageUrl || 'https://placehold.co/800x400/e9ecef/adb5bd?text=Loading...'}" 
+               class="card-img-top" 
+               alt="${animal.name}"
+               style="width: 100%; height: 100%; object-fit: cover;"
+               onerror="this.src='https://placehold.co/800x400/e9ecef/adb5bd?text=No+Image'">
+        </div>
         <div class="card-header d-flex justify-content-between align-items-center">
           <div>
             <span class="badge bg-primary">${animal.category}</span>
