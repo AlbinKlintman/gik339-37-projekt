@@ -1,3 +1,28 @@
+// Instead, use the API key directly (since it's a public key anyway)
+const UNSPLASH_ACCESS_KEY = '_QVElxtlOv5K98PBTh0gMMI27CctUGzyR6un46l5HHw';
+
+// Function to fetch image from Unsplash
+async function getAnimalImage(query) {
+  try {
+    const response = await fetch(
+      `https://api.unsplash.com/photos/random?query=${query}&orientation=landscape`,
+      {
+        headers: {
+          'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`
+        }
+      }
+    );
+    
+    if (!response.ok) throw new Error('Failed to fetch image');
+    
+    const data = await response.json();
+    return data.urls.regular;
+  } catch (error) {
+    console.error('Error fetching Unsplash image:', error);
+    return null;
+  }
+}
+
 // Mock data for animal species
 const mockAnimals = [
   {
@@ -8,7 +33,8 @@ const mockAnimals = [
     diet: "carnivore",
     category: "mammals",
     habitat: "terrestrial",
-    lifespan: 15
+    lifespan: 15,
+    imageQuery: "lion" // Used to fetch from Unsplash
   },
   {
     id: 2,
@@ -18,7 +44,8 @@ const mockAnimals = [
     diet: "carnivore",
     category: "birds",
     habitat: "aquatic",
-    lifespan: 20
+    lifespan: 20,
+    imageQuery: "penguin" // Used to fetch from Unsplash
   },
   {
     id: 3,
@@ -28,19 +55,56 @@ const mockAnimals = [
     diet: "carnivore",
     category: "marine",
     habitat: "aquatic",
-    lifespan: 5
+    lifespan: 5,
+    imageQuery: "octopus" // Used to fetch from Unsplash
+  },
+  {
+    id: 4,
+    name: "Red-Eyed Tree Frog",
+    species: "Agalychnis callidryas",
+    funFact: "They sleep during the day with their eyes closed, showing only white!",
+    diet: "carnivore",
+    category: "reptiles",
+    habitat: "terrestrial",
+    lifespan: 5,
+    imageQuery: "treefrog" // Used to fetch from Unsplash
+  },
+  {
+    id: 5,
+    name: "Monarch Butterfly",
+    species: "Danaus plexippus",
+    funFact: "They can travel up to 3000 miles during migration!",
+    diet: "herbivore",
+    category: "insects",
+    habitat: "aerial",
+    lifespan: 1,
+    imageQuery: "monarch" // Used to fetch from Unsplash
   }
 ];
 
 // Mock API functions
 async function fetchAnimals() {
   await new Promise(resolve => setTimeout(resolve, 500));
+  
+  // Ensure all animals have images
+  for (let animal of mockAnimals) {
+    if (!animal.imageUrl) {
+      animal.imageUrl = await getAnimalImage(animal.imageQuery || animal.name.toLowerCase()) 
+        || 'https://placehold.co/800x400/e9ecef/adb5bd?text=No+Image+Available';
+    }
+  }
+  
   return mockAnimals;
 }
 
 async function addAnimal(animal) {
   await new Promise(resolve => setTimeout(resolve, 500));
-  const newAnimal = { ...animal, id: mockAnimals.length + 1 };
+  const imageUrl = await getAnimalImage(animal.name.toLowerCase());
+  const newAnimal = { 
+    ...animal, 
+    id: mockAnimals.length + 1,
+    imageUrl: imageUrl || 'https://placehold.co/800x400/e9ecef/adb5bd?text=No+Image+Available'
+  };
   mockAnimals.push(newAnimal);
   return newAnimal;
 }
@@ -125,37 +189,77 @@ function showAnimalDetails(id) {
   const modalTitle = document.getElementById('detailsModalTitle');
   const modalBody = document.getElementById('detailsModalBody');
   
+  // First show loading state
   modalTitle.textContent = animal.name;
   modalBody.innerHTML = `
     <div class="animal-details">
-      <div class="mb-4">
-        <h6 class="text-muted">Scientific Name</h6>
-        <p class="fs-5"><em>${animal.species}</em></p>
-      </div>
-      
-      <div class="mb-4">
-        <h6 class="text-muted">Classification</h6>
-        <div class="d-flex gap-2 mb-2">
-          <span class="badge bg-primary">${animal.category}</span>
-          <span class="badge bg-secondary">${animal.habitat}</span>
-          <span class="badge bg-info">${animal.diet}</span>
+      <div class="text-center mb-4 position-relative">
+        <div class="placeholder-glow">
+          <div class="placeholder col-12" style="height: 400px; border-radius: 8px;"></div>
         </div>
       </div>
-
-      <div class="mb-4">
-        <h6 class="text-muted">Fun Fact</h6>
-        <p><i class="bi bi-lightbulb me-2"></i>${animal.funFact}</p>
-      </div>
-
-      <div class="mb-4">
-        <h6 class="text-muted">Lifespan</h6>
-        <p><i class="bi bi-hourglass-split me-2"></i>${animal.lifespan} years</p>
+      <div class="placeholder-glow">
+        <div class="placeholder col-8 mb-4" style="height: 24px;"></div>
+        <div class="placeholder col-6 mb-4" style="height: 24px;"></div>
+        <div class="placeholder col-10 mb-4" style="height: 24px;"></div>
+        <div class="placeholder col-7 mb-4" style="height: 24px;"></div>
       </div>
     </div>
   `;
 
+  // Show the modal immediately with loading state
   const detailsModal = new bootstrap.Modal(document.getElementById('animalDetailsModal'));
   detailsModal.show();
+
+  // Load the image
+  const img = new Image();
+  img.onload = () => {
+    modalBody.innerHTML = `
+      <div class="animal-details">
+        <div class="text-center mb-4">
+          <img src="${animal.imageUrl}" 
+               alt="${animal.name}" 
+               class="animal-detail-image rounded shadow-sm">
+        </div>
+        
+        <div class="mb-4">
+          <h6 class="text-muted">Scientific Name</h6>
+          <p class="fs-5"><em>${animal.species}</em></p>
+        </div>
+        
+        <div class="mb-4">
+          <h6 class="text-muted">Classification</h6>
+          <div class="d-flex gap-2 mb-2">
+            <span class="badge bg-primary">${animal.category}</span>
+            <span class="badge bg-secondary">${animal.habitat}</span>
+            <span class="badge bg-info">${animal.diet}</span>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <h6 class="text-muted">Fun Fact</h6>
+          <p><i class="bi bi-lightbulb me-2"></i>${animal.funFact}</p>
+        </div>
+
+        <div class="mb-4">
+          <h6 class="text-muted">Lifespan</h6>
+          <p><i class="bi bi-hourglass-split me-2"></i>${animal.lifespan} years</p>
+        </div>
+      </div>
+    `;
+  };
+
+  img.onerror = () => {
+    // Show error state if image fails to load
+    modalBody.querySelector('.placeholder-glow').innerHTML = `
+      <div class="text-center p-5 bg-light rounded">
+        <i class="bi bi-image text-muted display-1"></i>
+        <p class="text-muted mt-3">Image not available</p>
+      </div>
+    `;
+  };
+
+  img.src = animal.imageUrl;
 }
 
 // Add the rest of your event handling code here... 

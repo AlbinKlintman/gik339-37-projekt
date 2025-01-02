@@ -141,4 +141,23 @@ body {
 .btn-group {
     position: relative;
     z-index: 1;
+}
+
+/* Add these styles for the animal detail image */
+.animal-detail-image {
+    max-width: 100%;
+    height: auto;
+    max-height: 400px;
+    object-fit: cover;
+    margin-bottom: 1rem;
+}
+
+/* Add placeholder styling */
+.placeholder {
+    background-color: #e9ecef;
+}
+
+/* Update modal styling for larger images */
+.modal-lg {
+    max-width: 800px;
 } 
