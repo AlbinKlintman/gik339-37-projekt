@@ -1,464 +1,237 @@
-/* Basic styling without animations */
+/* Reset and base styles */
 body {
-    background-color: #f8f9fa;
-}
-
-.navbar {
-    background-color: #1e88e5 !important;
-    border-bottom: 1px solid rgba(0,0,0,0.1);
-}
-
-.card {
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    background: white;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0,0,0,0.12);
-}
-
-.card-header {
-    background-color: #ffffff;
-    border-bottom: 1px solid rgba(0,0,0,0.1);
-    border-radius: 8px 8px 0 0 !important;
-    padding: 1rem;
-}
-
-.card-body {
-    padding: 1.25rem;
-}
-
-/* Category-specific styling - more subtle colors */
-.category-mammals {
-    border-left: 3px solid #dc3545;
-}
-
-.category-birds {
-    border-left: 3px solid #198754;
-}
-
-.category-reptiles {
-    border-left: 3px solid #fd7e14;
-}
-
-.category-marine {
-    border-left: 3px solid #0dcaf0;
-}
-
-.category-insects {
-    border-left: 3px solid #6f42c1;
-}
-
-/* Badge styling */
-.badge {
-    font-weight: 500;
-    padding: 0.6em 1em;
-    border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-/* Form styling */
-.form-label {
-    font-weight: 500;
-    color: #212529;
-    margin-bottom: 0.5rem;
-}
-
-.form-control, .form-select {
-    border: 1px solid #dee2e6;
-    border-radius: 6px;
-    padding: 0.5rem 0.75rem;
-}
-
-.form-control:focus, .form-select:focus {
-    border-color: #1e88e5;
-    box-shadow: 0 0 0 0.2rem rgba(30, 136, 229, 0.15);
-}
-
-/* Modal styling */
-.modal-content {
-    border-radius: 16px;
+    background-color: #fff;
+    color: #000;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
 }
 
-.modal-header {
-    background: linear-gradient(45deg, var(--bs-primary), #1976d2);
-    color: white;
-    border: none;
-}
-
-.modal-body {
-    padding: 2rem;
-}
-
-.modal-footer {
-    border-top: 1px solid rgba(0,0,0,0.05);
-    padding: 1rem 1.5rem;
-}
-
-.modal-footer .btn-outline-danger {
-    opacity: 0.8;
-    transition: all 0.2s ease;
-}
-
-.modal-footer .btn-outline-danger:hover {
-    opacity: 1;
-    background-color: var(--bs-danger);
-    color: white;
-}
-
-/* Button styling */
-.btn {
-    font-weight: 500;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-}
-
-.btn-group .btn {
-    padding: 0.25rem 0.5rem;
-}
-
-/* Filter section styling */
-.form-select {
-    margin-bottom: 0.5rem;
-}
-
-/* Icons */
-.bi {
-    vertical-align: -0.125em;
-}
-
-/* Utility classes */
-.text-muted {
-    color: #6c757d !important;
-}
-
-.small {
-    font-size: 0.875rem;
-}
-
-/* Add these styles at the end of your CSS file */
-.animal-details h6 {
-    font-size: 0.875rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-}
-
-.animal-details p {
-    margin-bottom: 0;
-}
-
-.gap-2 {
-    gap: 0.5rem;
-}
-
-/* Prevent click events on buttons from triggering card click */
-.btn-group {
-    position: relative;
-    z-index: 1;
-}
-
-/* Add these styles for the animal detail image */
-.animal-detail-image {
-    max-width: 100%;
-    height: auto;
-    max-height: 400px;
-    object-fit: cover;
-    margin-bottom: 1rem;
-}
-
-/* Add placeholder styling */
-.placeholder {
-    background-color: #e9ecef;
-}
-
-/* Update modal styling for larger images */
-.modal-lg {
-    max-width: 800px;
-}
-
-/* Card hover effect */
-.hover-effect {
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-
-.hover-effect:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
-}
-
-/* Icons in cards */
-.card .bi {
-  margin-right: 0.5rem;
-}
-
-/* Taxonomy details section */
-.taxonomy-details {
-  font-size: 0.875rem;
-  background-color: rgba(0,0,0,0.02);
-  border-left: 3px solid var(--bs-primary);
-  border-radius: 0 8px 8px 0;
-}
-
-/* Modal improvements */
-.modal-body {
-  padding: 1.5rem;
-}
-
-.modal-header {
-  background-color: var(--bs-primary);
-  color: white;
-}
-
-.modal-header .btn-close {
-  filter: brightness(0) invert(1);
-}
-
-/* Image hover effect */
-.card-img-top {
-  transition: filter 0.3s ease;
-}
-
-.card:hover .card-img-top {
-  filter: brightness(1.1);
-}
-
-/* List styling in modal */
-.modal-body ul li {
-  padding: 0.5rem;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-}
-
-.modal-body ul li:last-child {
-  border-bottom: none;
-}
-
-/* Toast improvements */
-.toast {
-  background-color: white;
-  border-left: 4px solid var(--bs-primary);
-}
-
-.toast.bg-success {
-  border-left-color: var(--bs-success);
-}
-
-.toast.bg-danger {
-  border-left-color: var(--bs-danger);
-}
-
-/* Card improvements */
-.card {
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    background: white;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0,0,0,0.12);
-}
-
-.card-img-top {
-    border-radius: 12px 12px 0 0;
+/* Refined navbar */
+.navbar {
+    background-color: transparent !important;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+    padding: 1.5rem 0;
     transition: all 0.3s ease;
 }
 
-.card:hover .card-img-top {
-    filter: brightness(1.05);
+.navbar.scrolled {
+    background-color: rgba(0, 0, 0, 0.95) !important;
+    padding: 1rem 0;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Badge improvements */
-.badge {
-    font-weight: 500;
-    padding: 0.6em 1em;
-    border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+/* Polished carousel */
+.carousel {
+    height: 45vh;
+    background-color: #000;
+    margin-bottom: 0;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Card actions styling */
-.card-actions {
-    padding-top: 1rem;
-    border-top: 1px solid rgba(0,0,0,0.05);
+.carousel-item {
+    height: 45vh;
+    position: relative;
 }
 
-.card-actions .btn {
-    transition: all 0.2s ease;
+.carousel-item img {
+    height: 45vh;
+    width: 100%;
+    object-fit: cover;
+    filter: brightness(0.8);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.card-actions .btn-primary {
-    background-color: var(--bs-primary);
-    border: none;
-    font-weight: 500;
+.carousel-item:hover img {
+    filter: brightness(0.9);
 }
 
-.card-actions .btn-primary:hover {
-    background-color: #1976d2;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.carousel-control-prev,
+.carousel-control-next {
+    width: 5%;
+    opacity: 0;
+    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.card-actions .btn-outline-danger {
-    border-width: 1px;
-    font-weight: 400;
+.carousel:hover .carousel-control-prev,
+.carousel:hover .carousel-control-next {
     opacity: 0.8;
 }
 
-.card-actions .btn-outline-danger:hover {
-    opacity: 1;
+.carousel-indicators {
+    bottom: 2rem;
 }
 
-/* Taxonomy details improvements */
-.taxonomy-details {
-    font-size: 0.875rem;
-    background-color: rgba(0,0,0,0.02);
-    border-left: 3px solid var(--bs-primary);
-    border-radius: 0 8px 8px 0;
+.carousel-indicators button {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin: 0 6px;
+    background-color: rgba(255, 255, 255, 0.5);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Animal details styling */
-.animal-details .mb-2 {
-    padding: 0.5rem;
-    border-radius: 6px;
-    transition: background-color 0.2s ease;
+.carousel-indicators button.active {
+    background-color: #fff;
+    transform: scale(1.2);
 }
 
-.animal-details .mb-2:hover {
-    background-color: rgba(0,0,0,0.02);
+/* Refined content section */
+.content-section {
+    padding: 2rem 0;
+    background-color: #fff;
+    color: #000;
+    position: relative;
+    height: calc(100vh - 45vh);
+    overflow-y: auto;
 }
 
-/* Modal improvements */
-.modal-content {
-    border-radius: 16px;
-    overflow: hidden;
+.content-section::before {
+    display: none;
 }
 
-.modal-header {
-    background: linear-gradient(45deg, var(--bs-primary), #1976d2);
-    color: white;
-    border: none;
+.content-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    height: 100%;
 }
 
-.modal-body {
-    padding: 2rem;
+/* Typography refinements */
+.animal-title {
+    font-size: 2.5rem;
+    font-weight: 300;
+    margin-bottom: 0.25rem;
+    color: #000;
+    line-height: 1.1;
 }
 
-/* Toast improvements */
-.toast {
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+.animal-scientific-name {
+    font-size: 1rem;
+    font-style: italic;
+    color: #666;
+    margin-bottom: 1rem;
+    font-weight: 300;
 }
 
-/* Loading spinner improvements */
-.spinner-border {
-    width: 3rem;
-    height: 3rem;
-    color: var(--bs-primary);
+.animal-info {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #333;
+    margin-bottom: 1.5rem;
+    font-weight: 300;
 }
 
-/* Hover states */
-.btn:active {
-    transform: scale(0.98);
-}
-
-/* Modal content improvements */
-.modal-body {
-  padding: 1.5rem;
-}
-
-.taxonomy-details {
-  background-color: rgba(var(--bs-primary-rgb), 0.03);
-  border-left: 3px solid var(--bs-primary);
-}
-
-.characteristics-details .bg-light {
-  transition: background-color 0.2s ease;
-}
-
-.characteristics-details .bg-light:hover {
-  background-color: rgba(var(--bs-primary-rgb), 0.03) !important;
-}
-
-/* Badge improvements */
-.badge.bg-light {
-  font-weight: normal;
-  font-size: 0.8rem;
-  padding: 0.5em 0.8em;
-}
-
-/* Icon improvements */
-.modal-body .bi {
-  font-size: 1.1rem;
-  opacity: 0.8;
-}
-
-/* Section headers */
-.modal-body h6 {
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-}
-
-/* Text improvements */
-.small {
-  font-size: 0.85rem;
-}
-
-.text-muted {
-  opacity: 0.8;
-}
-
-/* Modal content improvements */
-.modal-xl {
-  max-width: 1200px;
-}
-
-.modal-body {
-  padding: 1.5rem;
-}
-
-.taxonomy-details, .locations-details {
-  background-color: rgba(var(--bs-primary-rgb), 0.03);
-  border-left: 3px solid var(--bs-primary);
-  height: 100%;
-}
-
+/* Characteristic items styling */
 .characteristic-item {
-  background-color: white;
-  border: 1px solid rgba(0,0,0,0.05);
-  transition: all 0.2s ease;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid #eee;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .characteristic-item:hover {
-  background-color: rgba(var(--bs-primary-rgb), 0.03);
-  border-color: var(--bs-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-/* Badge improvements */
-.badge.bg-light {
-  font-weight: normal;
-  font-size: 0.8rem;
-  padding: 0.5em 0.8em;
+.characteristic-item h6 {
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #666;
+    margin-bottom: 1rem;
 }
 
-/* Section headers */
-.modal-body h6 {
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
+/* Badge refinements */
+.badge {
+    font-weight: 400;
+    padding: 0.5em 1em;
+    border-radius: 30px;
+    font-size: 0.875rem;
+    background-color: #f0f0f0;
+    color: #666;
+    margin: 0.25rem;
+    transition: all 0.2s ease;
 }
 
-/* Text improvements */
-.small {
-  font-size: 0.85rem;
+.badge:hover {
+    background-color: #e0e0e0;
 }
 
-.text-muted {
-  opacity: 0.8;
+/* Metadata section */
+.metadata {
+    font-size: 0.875rem;
+    color: #999;
+    border-top: 1px solid #eee;
+    padding-top: 2rem;
+    margin-top: 3rem;
+    font-weight: 300;
+}
+
+/* Responsive refinements */
+@media (max-width: 768px) {
+    .carousel,
+    .carousel-item,
+    .carousel-item img {
+        height: 35vh;
+    }
+    
+    .content-section {
+        padding: 1.5rem 0;
+    }
+    
+    .animal-title {
+        font-size: 2rem;
+    }
+    
+    .characteristic-item {
+        padding: 1rem;
+    }
+}
+
+/* Loading spinner refinements */
+#loadingSpinner {
+    z-index: 2000;
+    background-color: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#loadingSpinner .spinner-border {
+    width: 3rem;
+    height: 3rem;
+    border-width: 0.25em;
+}
+
+/* Container adjustments */
+.container-fluid {
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Update carousel to have a fixed height */
+.carousel,
+.carousel-item,
+.carousel-item img {
+    height: 45vh;
+    min-height: 45vh;
+    max-height: 45vh;
 } 
