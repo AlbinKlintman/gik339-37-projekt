@@ -10,9 +10,15 @@ body {
 
 .card {
     border: none;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin-bottom: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    background: white;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.12);
 }
 
 .card-header {
@@ -50,7 +56,9 @@ body {
 /* Badge styling */
 .badge {
     font-weight: 500;
-    padding: 0.5em 0.75em;
+    padding: 0.6em 1em;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 /* Form styling */
@@ -73,23 +81,34 @@ body {
 
 /* Modal styling */
 .modal-content {
-    border: none;
-    border-radius: 8px;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    border-radius: 16px;
+    overflow: hidden;
 }
 
 .modal-header {
-    border-bottom: 1px solid #dee2e6;
-    padding: 1rem 1.5rem;
+    background: linear-gradient(45deg, var(--bs-primary), #1976d2);
+    color: white;
+    border: none;
 }
 
 .modal-body {
-    padding: 1.5rem;
+    padding: 2rem;
 }
 
 .modal-footer {
-    border-top: 1px solid #dee2e6;
+    border-top: 1px solid rgba(0,0,0,0.05);
     padding: 1rem 1.5rem;
+}
+
+.modal-footer .btn-outline-danger {
+    opacity: 0.8;
+    transition: all 0.2s ease;
+}
+
+.modal-footer .btn-outline-danger:hover {
+    opacity: 1;
+    background-color: var(--bs-danger);
+    color: white;
 }
 
 /* Button styling */
@@ -182,6 +201,7 @@ body {
   font-size: 0.875rem;
   background-color: rgba(0,0,0,0.02);
   border-left: 3px solid var(--bs-primary);
+  border-radius: 0 8px 8px 0;
 }
 
 /* Modal improvements */
@@ -229,4 +249,120 @@ body {
 
 .toast.bg-danger {
   border-left-color: var(--bs-danger);
+}
+
+/* Card improvements */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    background: white;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+}
+
+.card-img-top {
+    border-radius: 12px 12px 0 0;
+    transition: all 0.3s ease;
+}
+
+.card:hover .card-img-top {
+    filter: brightness(1.05);
+}
+
+/* Badge improvements */
+.badge {
+    font-weight: 500;
+    padding: 0.6em 1em;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Card actions styling */
+.card-actions {
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+.card-actions .btn {
+    transition: all 0.2s ease;
+}
+
+.card-actions .btn-primary {
+    background-color: var(--bs-primary);
+    border: none;
+    font-weight: 500;
+}
+
+.card-actions .btn-primary:hover {
+    background-color: #1976d2;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card-actions .btn-outline-danger {
+    border-width: 1px;
+    font-weight: 400;
+    opacity: 0.8;
+}
+
+.card-actions .btn-outline-danger:hover {
+    opacity: 1;
+}
+
+/* Taxonomy details improvements */
+.taxonomy-details {
+    font-size: 0.875rem;
+    background-color: rgba(0,0,0,0.02);
+    border-left: 3px solid var(--bs-primary);
+    border-radius: 0 8px 8px 0;
+}
+
+/* Animal details styling */
+.animal-details .mb-2 {
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+}
+
+.animal-details .mb-2:hover {
+    background-color: rgba(0,0,0,0.02);
+}
+
+/* Modal improvements */
+.modal-content {
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.modal-header {
+    background: linear-gradient(45deg, var(--bs-primary), #1976d2);
+    color: white;
+    border: none;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+/* Toast improvements */
+.toast {
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Loading spinner improvements */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+    color: var(--bs-primary);
+}
+
+/* Hover states */
+.btn:active {
+    transform: scale(0.98);
 } 

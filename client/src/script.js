@@ -75,7 +75,7 @@ function displayAnimals(animals) {
             <span class="badge bg-primary">${animal.info?.taxonomy?.class || 'Unknown'}</span>
           </div>
         </div>
-        <div class="card-body">
+        <div class="card-body d-flex flex-column">
           <div class="d-flex justify-content-between align-items-start mb-2">
             <div>
               <h5 class="card-title mb-0">${animal.name}</h5>
@@ -83,7 +83,7 @@ function displayAnimals(animals) {
             </div>
           </div>
           
-          <div class="animal-details small">
+          <div class="animal-details small flex-grow-1">
             ${animal.info?.characteristics ? `
               <div class="mb-3">
                 <div class="mb-2">
@@ -117,12 +117,9 @@ function displayAnimals(animals) {
             ` : '<p class="text-muted">No additional information available</p>'}
           </div>
 
-          <div class="d-flex gap-2 mt-3">
-            <button class="btn btn-outline-danger btn-sm flex-grow-1" onclick="deleteAnimal(${animal.id})">
-              <i class="bi bi-trash"></i> Delete
-            </button>
-            <button class="btn btn-outline-primary btn-sm" onclick="showAnimalDetails(${JSON.stringify(animal).replace(/"/g, '&quot;')})">
-              <i class="bi bi-info-circle"></i> More Info
+          <div class="card-actions mt-auto">
+            <button class="btn btn-primary btn-sm w-100" onclick="showAnimalDetails(${JSON.stringify(animal).replace(/"/g, '&quot;')})">
+              <i class="bi bi-info-circle"></i> More Information
             </button>
           </div>
         </div>
@@ -171,6 +168,12 @@ function showAnimalDetails(animal) {
                 </div>
               </div>
             ` : ''}
+          </div>
+          <div class="modal-footer justify-content-between">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-outline-danger" onclick="deleteAnimal(${animal.id})">
+              <i class="bi bi-trash"></i> Delete Animal
+            </button>
           </div>
         </div>
       </div>
