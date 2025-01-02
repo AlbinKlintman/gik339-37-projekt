@@ -110,15 +110,16 @@ server.get("/animal-info/:name", async (req, res) => {
     const taxonData = await taxonResponse.json();
     const taxonResult = taxonData.results[0];
 
-    // Get observations for images
+    // Get observations for images with better quality and randomization
     const iNatResponse = await fetch(
       `https://api.inaturalist.org/v1/observations?` + 
       `taxon_id=${taxonResult?.id}` +
       `&order=desc` +
       `&order_by=quality_grade` +
-      `&per_page=10` +
+      `&per_page=30` +
       `&photos=true` +
-      `&quality_grade=research,needs_id` +
+      `&quality_grade=research` +
+      `&photo_license=cc0,cc-by,cc-by-nc` +
       `&captive=false`, {
         headers: {
           'Authorization': `Bearer ${process.env.INATURALIST_API_KEY}`
@@ -129,14 +130,43 @@ server.get("/animal-info/:name", async (req, res) => {
     if (!iNatResponse.ok) throw new Error('Failed to fetch iNaturalist data');
     const iNatData = await iNatResponse.json();
     
-    // Get the best quality image
-    const bestImage = iNatData.results
-      .filter(obs => obs.photos && obs.photos.length > 0)
-      .map(obs => ({
-        url: obs.photos[0].url.replace('square', 'large'),
-        score: obs.quality_grade === 'research' ? 2 : 1
-      }))
-      .sort((a, b) => b.score - a.score)[0];
+    // Get high quality images and randomize selection
+    const getHighQualityImages = (observations) => {
+      return observations
+        .filter(obs => obs.photos && obs.photos.length > 0)
+        .map(obs => ({
+          url: obs.photos[0].url.replace('square', 'original'),
+          score: calculateImageScore(obs)
+        }))
+        .filter(img => img.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 10);
+    };
+
+    const calculateImageScore = (observation) => {
+      let score = 0;
+      
+      // Base score for research grade
+      if (observation.quality_grade === 'research') score += 3;
+      
+      // Bonus for recent observations
+      const obsDate = new Date(observation.observed_on);
+      const yearsSince = (new Date() - obsDate) / (1000 * 60 * 60 * 24 * 365);
+      if (yearsSince < 2) score += 1;
+      
+      // Bonus for photo license
+      if (observation.photos[0].license_code === 'cc0') score += 1;
+      
+      // Bonus for non-blurry photos (if metadata available)
+      if (!observation.photos[0].flags || !observation.photos[0].flags.includes('blurry')) score += 1;
+      
+      return score;
+    };
+
+    // Get the best images and randomly select one
+    const bestImages = getHighQualityImages(iNatData.results);
+    const randomIndex = Math.floor(Math.random() * Math.min(bestImages.length, 5));
+    const selectedImage = bestImages[randomIndex] || bestImages[0];
 
     // Format taxonomy data
     const taxonomy = {
@@ -160,7 +190,7 @@ server.get("/animal-info/:name", async (req, res) => {
         taxonomy: taxonomy,
         locations: locations
       },
-      imageUrl: bestImage?.url || 'https://placehold.co/800x400/e9ecef/adb5bd?text=Image+Not+Found'
+      imageUrl: selectedImage?.url || 'https://placehold.co/800x400/e9ecef/adb5bd?text=Image+Not+Found'
     };
 
     setCachedData(name, combinedData);
@@ -279,7 +309,7 @@ server.get("/observations/:name", async (req, res) => {
       `taxon_name=${encodeURIComponent(name)}` +
       `&order=desc` +
       `&order_by=created_at` +
-      `&per_page=5` +
+      `&per_page=3` +
       `&photos=true` +
       `&quality_grade=research` +
       `&captive=false`

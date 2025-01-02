@@ -212,33 +212,6 @@ async function updateAnimalDetails(animal) {
       </div>
       
       <div class="col-lg-4">
-        <!-- Keep only essential Ninja API data -->
-        ${animal.info?.locations ? `
-          <div class="characteristic-item">
-            <h6 class="text-uppercase mb-2">Locations</h6>
-            <div class="d-flex flex-wrap gap-2">
-              ${animal.info.locations.map(location => `
-                <span class="badge bg-light text-dark">${location}</span>
-              `).join('')}
-            </div>
-          </div>
-        ` : ''}
-        
-        ${animal.info?.taxonomy ? `
-          <div class="characteristic-item">
-            <h6 class="text-uppercase mb-2">Classification</h6>
-            <div class="small">
-              ${Object.entries(animal.info.taxonomy)
-                .filter(([key]) => ['class', 'order', 'family'].includes(key))
-                .map(([key, value]) => `
-                  <div class="mb-1">
-                    <span class="text-muted">${key}:</span> ${value}
-                  </div>
-                `).join('')}
-            </div>
-          </div>
-        ` : ''}
-        
         ${observations.length > 0 ? `
           <div class="characteristic-item mt-4">
             <h6 class="text-uppercase mb-3">
@@ -264,12 +237,10 @@ async function updateAnimalDetails(animal) {
           </div>
         ` : ''}
       </div>
-    </div>
-  `;
-  
-  // Add smooth scroll to content after update
-  const contentSection = document.querySelector('.content-section');
-  contentSection.scrollIntoView({ 
+    </div>`;
+
+  // Scroll to details
+  animalDetails.scrollIntoView({ 
     behavior: 'smooth', 
     block: 'start'
   });
