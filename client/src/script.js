@@ -71,9 +71,6 @@ function displayAnimals(animals) {
                class="card-img-top" 
                alt="${animal.name}"
                style="height: 250px; object-fit: cover;">
-          <div class="position-absolute top-0 end-0 p-2">
-            <span class="badge bg-primary">${animal.info?.taxonomy?.class || 'Unknown'}</span>
-          </div>
         </div>
         <div class="card-body d-flex flex-column">
           <div class="d-flex justify-content-between align-items-start mb-2">
@@ -83,40 +80,6 @@ function displayAnimals(animals) {
             </div>
           </div>
           
-          <div class="animal-details small flex-grow-1">
-            ${animal.info?.characteristics ? `
-              <div class="mb-3">
-                <div class="mb-2">
-                  <i class="bi bi-geo-alt text-primary"></i> 
-                  <strong>Habitat:</strong> ${animal.info.characteristics.habitat || 'Unknown'}
-                </div>
-                <div class="mb-2">
-                  <i class="bi bi-egg-fried text-primary"></i> 
-                  <strong>Diet:</strong> ${animal.info.characteristics.diet || 'Unknown'}
-                </div>
-                ${animal.info.characteristics.lifespan ? `
-                  <div class="mb-2">
-                    <i class="bi bi-clock text-primary"></i> 
-                    <strong>Lifespan:</strong> ${animal.info.characteristics.lifespan}
-                  </div>
-                ` : ''}
-                ${animal.info.characteristics.weight ? `
-                  <div class="mb-2">
-                    <i class="bi bi-speedometer2 text-primary"></i> 
-                    <strong>Weight:</strong> ${animal.info.characteristics.weight}
-                  </div>
-                ` : ''}
-              </div>
-              
-              <div class="taxonomy-details bg-light p-2 rounded mb-3 small">
-                <div class="fw-bold mb-1">Taxonomy:</div>
-                <div>Kingdom: ${animal.info.taxonomy.kingdom || 'Unknown'}</div>
-                <div>Family: ${animal.info.taxonomy.family || 'Unknown'}</div>
-                <div>Genus: ${animal.info.taxonomy.genus || 'Unknown'}</div>
-              </div>
-            ` : '<p class="text-muted">No additional information available</p>'}
-          </div>
-
           <div class="card-actions mt-auto">
             <button class="btn btn-primary btn-sm w-100" onclick="showAnimalDetails(${JSON.stringify(animal).replace(/"/g, '&quot;')})">
               <i class="bi bi-info-circle"></i> More Information
@@ -132,47 +95,99 @@ function displayAnimals(animals) {
 function showAnimalDetails(animal) {
   const modalHtml = `
     <div class="modal fade" id="animalDetailsModal" tabindex="-1">
-      <div class="modal-dialog modal-lg">
+      <div class="modal-dialog modal-xl">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">${animal.name}</h5>
+            <div>
+              <h5 class="modal-title mb-1">${animal.name}</h5>
+              <p class="text-muted small mb-0 fst-italic">${animal.info?.taxonomy?.scientific_name || 'Scientific name unknown'}</p>
+            </div>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
-            <div class="row">
-              <div class="col-md-6">
-                <img src="${animal.imageUrl}" class="img-fluid rounded mb-3" alt="${animal.name}">
+            <div class="row g-4">
+              <div class="col-lg-5">
+                <img src="${animal.imageUrl}" 
+                     class="img-fluid rounded shadow-sm" 
+                     alt="${animal.name}"
+                     style="width: 100%; height: 400px; object-fit: cover;">
               </div>
-              <div class="col-md-6">
-                <h6 class="text-primary">Characteristics</h6>
-                <ul class="list-unstyled">
-                  ${Object.entries(animal.info?.characteristics || {})
-                    .filter(([key, value]) => value && !key.includes('_'))
-                    .map(([key, value]) => `
-                      <li class="mb-2">
-                        <strong>${key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ')}:</strong> 
-                        ${value}
-                      </li>
-                    `).join('')}
-                </ul>
-              </div>
-            </div>
-            
-            ${animal.info?.locations ? `
-              <div class="mt-3">
-                <h6 class="text-primary">Locations</h6>
-                <div class="d-flex flex-wrap gap-2">
-                  ${animal.info.locations.map(location => `
-                    <span class="badge bg-secondary">${location}</span>
-                  `).join('')}
+              <div class="col-lg-7">
+                <div class="row g-3">
+                  <div class="col-md-7">
+                    <div class="taxonomy-details p-3 rounded h-100">
+                      <h6 class="text-primary d-flex align-items-center mb-3">
+                        <i class="bi bi-diagram-3 me-2"></i>Taxonomy
+                      </h6>
+                      <div class="row g-2">
+                        <div class="col-6">
+                          <div class="small text-muted">Kingdom</div>
+                          <div>${animal.info?.taxonomy?.kingdom || 'Unknown'}</div>
+                        </div>
+                        <div class="col-6">
+                          <div class="small text-muted">Class</div>
+                          <div>${animal.info?.taxonomy?.class || 'Unknown'}</div>
+                        </div>
+                        <div class="col-6">
+                          <div class="small text-muted">Order</div>
+                          <div>${animal.info?.taxonomy?.order || 'Unknown'}</div>
+                        </div>
+                        <div class="col-6">
+                          <div class="small text-muted">Family</div>
+                          <div>${animal.info?.taxonomy?.family || 'Unknown'}</div>
+                        </div>
+                        <div class="col-6">
+                          <div class="small text-muted">Genus</div>
+                          <div>${animal.info?.taxonomy?.genus || 'Unknown'}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="col-md-5">
+                    ${animal.info?.locations ? `
+                      <div class="locations-details p-3 rounded mb-3">
+                        <h6 class="text-primary d-flex align-items-center mb-2">
+                          <i class="bi bi-geo-alt me-2"></i>Locations
+                        </h6>
+                        <div class="d-flex flex-wrap gap-2">
+                          ${animal.info.locations.map(location => `
+                            <span class="badge bg-light text-dark border">${location}</span>
+                          `).join('')}
+                        </div>
+                      </div>
+                    ` : ''}
+                  </div>
+
+                  ${animal.info?.characteristics ? `
+                    <div class="col-12">
+                      <div class="characteristics-details p-3 rounded bg-light">
+                        <h6 class="text-primary d-flex align-items-center mb-3">
+                          <i class="bi bi-list-check me-2"></i>Key Characteristics
+                        </h6>
+                        <div class="row g-2">
+                          ${Object.entries(animal.info.characteristics)
+                            .filter(([key, value]) => value && !key.includes('_'))
+                            .map(([key, value]) => `
+                              <div class="col-md-6">
+                                <div class="p-2 rounded characteristic-item">
+                                  <div class="small text-muted">${key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ')}</div>
+                                  <div class="small">${value}</div>
+                                </div>
+                              </div>
+                            `).join('')}
+                        </div>
+                      </div>
+                    </div>
+                  ` : ''}
                 </div>
               </div>
-            ` : ''}
+            </div>
           </div>
-          <div class="modal-footer justify-content-between">
+          <div class="modal-footer">
             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
             <button type="button" class="btn btn-outline-danger" onclick="deleteAnimal(${animal.id})">
-              <i class="bi bi-trash"></i> Delete Animal
+              <i class="bi bi-trash"></i> Delete
             </button>
           </div>
         </div>

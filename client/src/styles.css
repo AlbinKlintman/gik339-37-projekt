@@ -365,4 +365,100 @@ body {
 /* Hover states */
 .btn:active {
     transform: scale(0.98);
+}
+
+/* Modal content improvements */
+.modal-body {
+  padding: 1.5rem;
+}
+
+.taxonomy-details {
+  background-color: rgba(var(--bs-primary-rgb), 0.03);
+  border-left: 3px solid var(--bs-primary);
+}
+
+.characteristics-details .bg-light {
+  transition: background-color 0.2s ease;
+}
+
+.characteristics-details .bg-light:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.03) !important;
+}
+
+/* Badge improvements */
+.badge.bg-light {
+  font-weight: normal;
+  font-size: 0.8rem;
+  padding: 0.5em 0.8em;
+}
+
+/* Icon improvements */
+.modal-body .bi {
+  font-size: 1.1rem;
+  opacity: 0.8;
+}
+
+/* Section headers */
+.modal-body h6 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+/* Text improvements */
+.small {
+  font-size: 0.85rem;
+}
+
+.text-muted {
+  opacity: 0.8;
+}
+
+/* Modal content improvements */
+.modal-xl {
+  max-width: 1200px;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.taxonomy-details, .locations-details {
+  background-color: rgba(var(--bs-primary-rgb), 0.03);
+  border-left: 3px solid var(--bs-primary);
+  height: 100%;
+}
+
+.characteristic-item {
+  background-color: white;
+  border: 1px solid rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
+}
+
+.characteristic-item:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.03);
+  border-color: var(--bs-primary);
+}
+
+/* Badge improvements */
+.badge.bg-light {
+  font-weight: normal;
+  font-size: 0.8rem;
+  padding: 0.5em 0.8em;
+}
+
+/* Section headers */
+.modal-body h6 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+/* Text improvements */
+.small {
+  font-size: 0.85rem;
+}
+
+.text-muted {
+  opacity: 0.8;
 } 
