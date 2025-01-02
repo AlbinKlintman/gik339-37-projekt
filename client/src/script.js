@@ -1,62 +1,110 @@
-/* // MOCK DATA - DELETE THIS SECTION WHEN CONNECTING TO BACKEND
+// Instead, use the API key directly (since it's a public key anyway)
+const UNSPLASH_ACCESS_KEY = '_QVElxtlOv5K98PBTh0gMMI27CctUGzyR6un46l5HHw';
+
+// Function to fetch image from Unsplash
+async function getAnimalImage(query) {
+  try {
+    const response = await fetch(
+      `https://api.unsplash.com/photos/random?query=${query}&orientation=landscape`,
+      {
+        headers: {
+          'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`
+        }
+      }
+    );
+    
+    if (!response.ok) throw new Error('Failed to fetch image');
+    
+    const data = await response.json();
+    return data.urls.regular;
+  } catch (error) {
+    console.error('Error fetching Unsplash image:', error);
+    return null;
+  }
+}
+
+// Mock data for animal species
 const mockAnimals = [
   {
     id: 1,
-    title: "African Lion",
+    name: "African Lion",
     species: "Panthera leo",
-    description: "Majestic male lion with a full mane, photographed in the Serengeti.",
-    imageUrl: "https://images.unsplash.com/photo-1614027164847-1b28cfe1df60?w=600",
+    funFact: "Male lions can sleep up to 20 hours a day!",
+    diet: "carnivore",
     category: "mammals",
-    habitat: "African Savanna"
+    habitat: "terrestrial",
+    lifespan: 15,
+    imageQuery: "lion" // Used to fetch from Unsplash
   },
   {
     id: 2,
-    title: "Golden Eagle",
-    species: "Aquila chrysaetos",
-    description: "Powerful bird of prey soaring over mountain peaks.",
-    imageUrl: "https://images.unsplash.com/photo-1611689342806-0863700ce1e4?w=600",
+    name: "Emperor Penguin",
+    species: "Aptenodytes forsteri",
+    funFact: "Can dive up to 500 meters deep and hold their breath for 20 minutes!",
+    diet: "carnivore",
     category: "birds",
-    habitat: "Mountain Ranges"
+    habitat: "aquatic",
+    lifespan: 20,
+    imageQuery: "penguin" // Used to fetch from Unsplash
   },
   {
     id: 3,
-    title: "Green Sea Turtle",
-    species: "Chelonia mydas",
-    description: "Graceful sea turtle swimming in crystal clear waters.",
-    imageUrl: "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=600",
+    name: "Giant Pacific Octopus",
+    species: "Enteroctopus dofleini",
+    funFact: "Has three hearts and can change color in less than a second!",
+    diet: "carnivore",
     category: "marine",
-    habitat: "Tropical Oceans"
+    habitat: "aquatic",
+    lifespan: 5,
+    imageQuery: "octopus" // Used to fetch from Unsplash
   },
   {
     id: 4,
-    title: "Monarch Butterfly",
-    species: "Danaus plexippus",
-    description: "Beautiful butterfly during its annual migration.",
-    imageUrl: "https://images.unsplash.com/photo-1595855759920-86582396756c?w=600",
-    category: "insects",
-    habitat: "North American Gardens"
+    name: "Red-Eyed Tree Frog",
+    species: "Agalychnis callidryas",
+    funFact: "They sleep during the day with their eyes closed, showing only white!",
+    diet: "carnivore",
+    category: "reptiles",
+    habitat: "terrestrial",
+    lifespan: 5,
+    imageQuery: "treefrog" // Used to fetch from Unsplash
   },
   {
     id: 5,
-    title: "Komodo Dragon",
-    species: "Varanus komodoensis",
-    description: "World's largest lizard in its natural habitat.",
-    imageUrl: "https://images.unsplash.com/photo-1577493340887-b7bfff550145?w=600",
-    category: "reptiles",
-    habitat: "Indonesian Islands"
+    name: "Monarch Butterfly",
+    species: "Danaus plexippus",
+    funFact: "They can travel up to 3000 miles during migration!",
+    diet: "herbivore",
+    category: "insects",
+    habitat: "aerial",
+    lifespan: 1,
+    imageQuery: "monarch" // Used to fetch from Unsplash
   }
-]; */
+];
 
-// Mock API functions - Replace these with real API calls later
+// Mock API functions
 async function fetchAnimals() {
-  // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 500));
+  
+  // Ensure all animals have images
+  for (let animal of mockAnimals) {
+    if (!animal.imageUrl) {
+      animal.imageUrl = await getAnimalImage(animal.imageQuery || animal.name.toLowerCase()) 
+        || 'https://placehold.co/800x400/e9ecef/adb5bd?text=No+Image+Available';
+    }
+  }
+  
   return mockAnimals;
 }
 
 async function addAnimal(animal) {
   await new Promise(resolve => setTimeout(resolve, 500));
-  const newAnimal = { ...animal, id: mockAnimals.length + 1 };
+  const imageUrl = await getAnimalImage(animal.name.toLowerCase());
+  const newAnimal = { 
+    ...animal, 
+    id: mockAnimals.length + 1,
+    imageUrl: imageUrl || 'https://placehold.co/800x400/e9ecef/adb5bd?text=No+Image+Available'
+  };
   mockAnimals.push(newAnimal);
   return newAnimal;
 }
@@ -68,7 +116,7 @@ async function updateAnimal(id, updatedAnimal) {
     mockAnimals[index] = { ...updatedAnimal, id };
     return mockAnimals[index];
   }
-  throw new Error('Animal not found');
+  throw new Error('Species not found');
 }
 
 async function deleteAnimal(id) {
@@ -78,7 +126,7 @@ async function deleteAnimal(id) {
     mockAnimals.splice(index, 1);
     return true;
   }
-  throw new Error('Animal not found');
+  throw new Error('Species not found');
 }
 
 // Main application code
@@ -92,30 +140,40 @@ async function loadAnimals() {
     const animals = await fetchAnimals();
     displayAnimals(animals);
   } catch (error) {
-    showFeedback('Error loading animals: ' + error.message);
+    showFeedback('Error loading species: ' + error.message);
   }
 }
 
 function displayAnimals(animals) {
-  const photoList = document.getElementById('photoList');
-  photoList.innerHTML = animals.map(animal => `
-    <div class="col-md-4 mb-4">
-      <div class="card category-${animal.category}">
-        <img src="${animal.imageUrl}" class="card-img-top" alt="${animal.title}">
-        <div class="btn-group">
-          <button class="btn btn-sm btn-light" onclick="editAnimal(${animal.id})">
-            <i class="bi bi-pencil"></i>
-          </button>
-          <button class="btn btn-sm btn-light" onclick="confirmDelete(${animal.id})">
-            <i class="bi bi-trash"></i>
-          </button>
+  const animalList = document.getElementById('animalList');
+  animalList.innerHTML = animals.map(animal => `
+    <div class="col-lg-4 col-md-6">
+      <div class="card h-100 category-${animal.category} habitat-${animal.habitat}" 
+           onclick="showAnimalDetails(${animal.id})" 
+           style="cursor: pointer;">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <div>
+            <span class="badge bg-primary">${animal.category}</span>
+            <span class="badge bg-secondary">${animal.habitat}</span>
+          </div>
+          <div class="btn-group" onclick="event.stopPropagation()">
+            <button class="btn btn-light btn-sm" onclick="editAnimal(${animal.id})">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn btn-light btn-sm" onclick="confirmDelete(${animal.id})">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
         </div>
         <div class="card-body">
-          <h5 class="card-title">${animal.title}</h5>
-          <h6 class="card-subtitle mb-2 text-muted">${animal.species}</h6>
-          <p class="card-text">${animal.description}</p>
-          <div class="text-muted small">
-            <i class="bi bi-geo-alt"></i> ${animal.habitat}
+          <h5 class="card-title">${animal.name}</h5>
+          <h6 class="card-subtitle mb-2 text-muted"><em>${animal.species}</em></h6>
+          <p class="card-text">
+            <i class="bi bi-lightbulb me-2"></i>${animal.funFact}
+          </p>
+          <div class="d-flex justify-content-between text-muted small">
+            <span><i class="bi bi-egg-fried me-1"></i>${animal.diet}</span>
+            <span><i class="bi bi-hourglass-split me-1"></i>${animal.lifespan} years</span>
           </div>
         </div>
       </div>
@@ -123,18 +181,85 @@ function displayAnimals(animals) {
   `).join('');
 }
 
-// Rest of your application code... 
+// Add this new function to handle showing animal details
+function showAnimalDetails(id) {
+  const animal = mockAnimals.find(a => a.id === id);
+  if (!animal) return;
 
-const  url = 'http:localhost:3000/animals'
+  const modalTitle = document.getElementById('detailsModalTitle');
+  const modalBody = document.getElementById('detailsModalBody');
+  
+  // First show loading state
+  modalTitle.textContent = animal.name;
+  modalBody.innerHTML = `
+    <div class="animal-details">
+      <div class="text-center mb-4 position-relative">
+        <div class="placeholder-glow">
+          <div class="placeholder col-12" style="height: 400px; border-radius: 8px;"></div>
+        </div>
+      </div>
+      <div class="placeholder-glow">
+        <div class="placeholder col-8 mb-4" style="height: 24px;"></div>
+        <div class="placeholder col-6 mb-4" style="height: 24px;"></div>
+        <div class="placeholder col-10 mb-4" style="height: 24px;"></div>
+        <div class="placeholder col-7 mb-4" style="height: 24px;"></div>
+      </div>
+    </div>
+  `;
 
-window.addEventListener('load', fetchData);
+  // Show the modal immediately with loading state
+  const detailsModal = new bootstrap.Modal(document.getElementById('animalDetailsModal'));
+  detailsModal.show();
 
-function fetchData() {
-  fetch(url)
-    .then((result) => result.json())
-    .then((animals) => {
-      console.log(animals);
+  // Load the image
+  const img = new Image();
+  img.onload = () => {
+    modalBody.innerHTML = `
+      <div class="animal-details">
+        <div class="text-center mb-4">
+          <img src="${animal.imageUrl}" 
+               alt="${animal.name}" 
+               class="animal-detail-image rounded shadow-sm">
+        </div>
+        
+        <div class="mb-4">
+          <h6 class="text-muted">Scientific Name</h6>
+          <p class="fs-5"><em>${animal.species}</em></p>
+        </div>
+        
+        <div class="mb-4">
+          <h6 class="text-muted">Classification</h6>
+          <div class="d-flex gap-2 mb-2">
+            <span class="badge bg-primary">${animal.category}</span>
+            <span class="badge bg-secondary">${animal.habitat}</span>
+            <span class="badge bg-info">${animal.diet}</span>
+          </div>
+        </div>
 
-      displayAnimals(animals);
-    });
+        <div class="mb-4">
+          <h6 class="text-muted">Fun Fact</h6>
+          <p><i class="bi bi-lightbulb me-2"></i>${animal.funFact}</p>
+        </div>
+
+        <div class="mb-4">
+          <h6 class="text-muted">Lifespan</h6>
+          <p><i class="bi bi-hourglass-split me-2"></i>${animal.lifespan} years</p>
+        </div>
+      </div>
+    `;
+  };
+
+  img.onerror = () => {
+    // Show error state if image fails to load
+    modalBody.querySelector('.placeholder-glow').innerHTML = `
+      <div class="text-center p-5 bg-light rounded">
+        <i class="bi bi-image text-muted display-1"></i>
+        <p class="text-muted mt-3">Image not available</p>
+      </div>
+    `;
+  };
+
+  img.src = animal.imageUrl;
 }
+
+// Add the rest of your event handling code here... 

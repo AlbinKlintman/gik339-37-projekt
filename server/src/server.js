@@ -1,7 +1,7 @@
 console.log("start of server");
 
 const sqlite = require("sqlite3").verbose();
-const db = new sqlite.Database('./animals.db');
+const db = new sqlite.Database('./src/animals.db');
 
 const express = require('express');
 const server = express();

@@ -4,62 +4,160 @@ body {
 }
 
 .navbar {
-    border-bottom: 1px solid #dee2e6;
+    background-color: #1e88e5 !important;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
 }
 
 .card {
     border: none;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 1rem;
 }
 
-.card-img-top {
-    height: 200px;
-    object-fit: cover;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
+.card-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    border-radius: 8px 8px 0 0 !important;
+    padding: 1rem;
 }
 
 .card-body {
     padding: 1.25rem;
 }
 
-.btn-group {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background-color: rgba(255, 255, 255, 0.9);
-    padding: 5px;
-    border-radius: 4px;
-}
-
-.form-label {
-    font-weight: 500;
-    color: #212529;
-}
-
-.modal-content {
-    border: none;
-    border-radius: 8px;
-}
-
-/* Category-specific colors */
+/* Category-specific styling - more subtle colors */
 .category-mammals {
-    border-left: 4px solid #dc3545;
+    border-left: 3px solid #dc3545;
 }
 
 .category-birds {
-    border-left: 4px solid #198754;
+    border-left: 3px solid #198754;
 }
 
 .category-reptiles {
-    border-left: 4px solid #fd7e14;
+    border-left: 3px solid #fd7e14;
 }
 
 .category-marine {
-    border-left: 4px solid #0dcaf0;
+    border-left: 3px solid #0dcaf0;
 }
 
 .category-insects {
-    border-left: 4px solid #6f42c1;
+    border-left: 3px solid #6f42c1;
+}
+
+/* Badge styling */
+.badge {
+    font-weight: 500;
+    padding: 0.5em 0.75em;
+}
+
+/* Form styling */
+.form-label {
+    font-weight: 500;
+    color: #212529;
+    margin-bottom: 0.5rem;
+}
+
+.form-control, .form-select {
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #1e88e5;
+    box-shadow: 0 0 0 0.2rem rgba(30, 136, 229, 0.15);
+}
+
+/* Modal styling */
+.modal-content {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+}
+
+.modal-header {
+    border-bottom: 1px solid #dee2e6;
+    padding: 1rem 1.5rem;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid #dee2e6;
+    padding: 1rem 1.5rem;
+}
+
+/* Button styling */
+.btn {
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+}
+
+.btn-group .btn {
+    padding: 0.25rem 0.5rem;
+}
+
+/* Filter section styling */
+.form-select {
+    margin-bottom: 0.5rem;
+}
+
+/* Icons */
+.bi {
+    vertical-align: -0.125em;
+}
+
+/* Utility classes */
+.text-muted {
+    color: #6c757d !important;
+}
+
+.small {
+    font-size: 0.875rem;
+}
+
+/* Add these styles at the end of your CSS file */
+.animal-details h6 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.animal-details p {
+    margin-bottom: 0;
+}
+
+.gap-2 {
+    gap: 0.5rem;
+}
+
+/* Prevent click events on buttons from triggering card click */
+.btn-group {
+    position: relative;
+    z-index: 1;
+}
+
+/* Add these styles for the animal detail image */
+.animal-detail-image {
+    max-width: 100%;
+    height: auto;
+    max-height: 400px;
+    object-fit: cover;
+    margin-bottom: 1rem;
+}
+
+/* Add placeholder styling */
+.placeholder {
+    background-color: #e9ecef;
+}
+
+/* Update modal styling for larger images */
+.modal-lg {
+    max-width: 800px;
 } 
