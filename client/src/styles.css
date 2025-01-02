@@ -20,10 +20,11 @@ body {
     width: 100%;
     z-index: 1000;
     padding: 1.5rem 0;
-    transition: all 0.3s ease;
+    transition: opacity 0.3s ease;
     max-width: 1200px;
     left: 50%;
     transform: translateX(-50%);
+    opacity: 1;
 }
 
 .navbar .container {
@@ -31,10 +32,8 @@ body {
 }
 
 .navbar.scrolled {
-    background-color: rgba(0, 0, 0, 0.95) !important;
-    padding: 1rem 0;
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    pointer-events: none;
 }
 
 /* Polished carousel */

@@ -22,16 +22,18 @@ document.addEventListener('scroll', () => {
   const carousel = document.getElementById('animalCarousel');
   const contentSection = document.querySelector('.content-section');
   const scrollPosition = window.scrollY;
+  const navbarHeight = navbar.offsetHeight;
+  const carouselBottom = carousel.offsetHeight;
   
-  // Handle navbar
-  if (scrollPosition > 50) {
+  // Handle navbar - only add background when navbar bottom crosses carousel bottom
+  if (scrollPosition > carouselBottom - navbarHeight) {
     navbar.classList.add('scrolled');
   } else {
     navbar.classList.remove('scrolled');
   }
   
   // Handle content focus
-  if (scrollPosition > 200) { // Use fixed pixel value instead of viewport percentage
+  if (scrollPosition > 200) {
     if (!carousel.classList.contains('minimized')) {
       carousel.classList.add('minimized');
       contentSection.classList.add('focus-active');
