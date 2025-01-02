@@ -379,4 +379,49 @@ body.bg-black {
 
 .carousel.minimized .carousel-item img {
     height: 30vh;
+}
+
+/* Add styles for observations */
+.observations-grid {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.observation-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s ease;
+}
+
+.observation-card:hover {
+    transform: translateY(-2px);
+}
+
+.observation-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+}
+
+.observation-details {
+    padding: 0.75rem;
+}
+
+.observation-location {
+    font-size: 0.9rem;
+    margin: 0.25rem 0;
+}
+
+.observer {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.search-term {
+    font-size: 1rem;
+    font-weight: normal;
+    color: #6c757d;
+    margin-left: 0.5rem;
 } 

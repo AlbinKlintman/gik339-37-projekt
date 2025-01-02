@@ -8,7 +8,7 @@ const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch
 const server = express();
 const db = new sqlite.Database('./src/animals.db');
 const imageCache = new Map();
-const CACHE_DURATION = 15 * 60 * 1000;
+const CACHE_DURATION = 5 * 60 * 1000;
 const descriptionCache = new Map();
 
 console.log('Environment check:');
@@ -82,76 +82,97 @@ server.delete("/animals/:id", (req, res) => {
   });
 });
 
-// Animal info endpoint (combines Ninja API and Unsplash)
+// Animal info endpoint (combines Ninja API and iNaturalist)
 server.get("/animal-info/:name", async (req, res) => {
   const name = req.params.name;
-  const cached = getCachedData(name);
   
-  if (cached) {
-    console.log('Returning cached data for:', name);
-    return res.json(cached);
-  }
-
   try {
-    console.log('Fetching new data for:', name);
-    console.log('Using API Key:', process.env.NINJA_API_KEY);
-    
-    // Get animal info from Ninja API
-    const ninjaResponse = await fetch(
-      `https://api.api-ninjas.com/v1/animals?name=${encodeURIComponent(name)}`,
-      { 
-        method: 'GET',
-        headers: { 
-          'X-Api-Key': process.env.NINJA_API_KEY.trim()
+    // Check cache first
+    const cached = getCachedData(name);
+    if (cached) {
+      return res.json(cached);
+    }
+
+    // First get the taxonomic data from iNaturalist
+    const taxonResponse = await fetch(
+      `https://api.inaturalist.org/v1/taxa?` +
+      `q=${encodeURIComponent(name)}` +
+      `&kingdom=Animalia` +
+      `&rank=species,genus` +
+      `&per_page=1`, {
+        headers: {
+          'Authorization': `Bearer ${process.env.INATURALIST_API_KEY}`
         }
       }
     );
-    
-    if (!ninjaResponse.ok) {
-      const errorText = await ninjaResponse.text();
-      console.error('Ninja API Error:', errorText);
-      console.error('Response status:', ninjaResponse.status);
-      console.error('Response headers:', ninjaResponse.headers);
-      throw new Error(`Animal API error: ${errorText}`);
-    }
 
-    const animalData = await ninjaResponse.json();
-    console.log('Ninja API response:', animalData);
+    if (!taxonResponse.ok) throw new Error('Failed to fetch taxon data');
+    const taxonData = await taxonResponse.json();
+    const taxonResult = taxonData.results[0];
 
-    // Get image from Unsplash
-    const unsplashResponse = await fetch(
-      `https://api.unsplash.com/photos/random?query=${encodeURIComponent(name + ' animal')}&orientation=landscape`,
-      { 
-        headers: { 
-          'Authorization': `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}`
+    // Get observations for images
+    const iNatResponse = await fetch(
+      `https://api.inaturalist.org/v1/observations?` + 
+      `taxon_id=${taxonResult?.id}` +
+      `&order=desc` +
+      `&order_by=quality_grade` +
+      `&per_page=10` +
+      `&photos=true` +
+      `&quality_grade=research,needs_id` +
+      `&captive=false`, {
+        headers: {
+          'Authorization': `Bearer ${process.env.INATURALIST_API_KEY}`
         }
       }
     );
+
+    if (!iNatResponse.ok) throw new Error('Failed to fetch iNaturalist data');
+    const iNatData = await iNatResponse.json();
     
-    if (!unsplashResponse.ok) {
-      console.error('Unsplash API Error:', await unsplashResponse.text());
-      throw new Error('Image API error');
-    }
+    // Get the best quality image
+    const bestImage = iNatData.results
+      .filter(obs => obs.photos && obs.photos.length > 0)
+      .map(obs => ({
+        url: obs.photos[0].url.replace('square', 'large'),
+        score: obs.quality_grade === 'research' ? 2 : 1
+      }))
+      .sort((a, b) => b.score - a.score)[0];
 
-    const imageData = await unsplashResponse.json();
-
-    const combinedData = {
-      info: animalData[0] || null,
-      imageUrl: imageData.urls?.regular || null
+    // Format taxonomy data
+    const taxonomy = {
+      scientific_name: taxonResult?.name,
+      kingdom: taxonResult?.ancestor_ids ? 'Animalia' : undefined,
+      class: taxonResult?.ancestors?.find(a => a.rank === 'class')?.name,
+      order: taxonResult?.ancestors?.find(a => a.rank === 'order')?.name,
+      family: taxonResult?.ancestors?.find(a => a.rank === 'family')?.name,
     };
 
-    console.log('Combined data:', combinedData);
+    // Get locations from iNaturalist observations
+    const locations = [...new Set(iNatData.results
+      .filter(obs => obs.place_guess)
+      .map(obs => obs.place_guess)
+      .slice(0, 5))];
+
+    const combinedData = {
+      info: {
+        name: name,
+        displayName: taxonResult?.preferred_common_name || taxonResult?.name || name,
+        taxonomy: taxonomy,
+        locations: locations
+      },
+      imageUrl: bestImage?.url || 'https://placehold.co/800x400/e9ecef/adb5bd?text=Image+Not+Found'
+    };
+
     setCachedData(name, combinedData);
     res.json(combinedData);
   } catch (error) {
     console.error('Error fetching animal info:', error);
-    // Return a more graceful error response
     res.status(500).json({ 
       error: error.message,
       info: {
         name: name,
         taxonomy: { scientific_name: 'Not found' },
-        characteristics: { habitat: 'Unknown', diet: 'Unknown' }
+        locations: []
       },
       imageUrl: 'https://placehold.co/800x400/e9ecef/adb5bd?text=Image+Not+Found'
     });
@@ -236,6 +257,61 @@ Keep the writing engaging and informative, using clear language suitable for a g
     console.error('Error generating description:', error);
     res.status(500).json({ 
       description: 'Unable to generate description at this time.'
+    });
+  }
+});
+
+// Add this new endpoint for iNaturalist observations
+server.get("/observations/:name", async (req, res) => {
+  const name = req.params.name;
+  const cacheKey = `inaturalist-${name}`;
+  
+  try {
+    // Check cache first
+    const cached = getCachedData(cacheKey);
+    if (cached) {
+      return res.json(cached);
+    }
+
+    // Fetch observations from iNaturalist API
+    const response = await fetch(
+      `https://api.inaturalist.org/v1/observations?` + 
+      `taxon_name=${encodeURIComponent(name)}` +
+      `&order=desc` +
+      `&order_by=created_at` +
+      `&per_page=5` +
+      `&photos=true` +
+      `&quality_grade=research` +
+      `&captive=false`
+    );
+
+    if (!response.ok) throw new Error('Failed to fetch observations');
+    
+    const data = await response.json();
+    
+    // Format the observations
+    const observations = data.results.map(obs => ({
+      id: obs.id,
+      location: {
+        latitude: obs.latitude,
+        longitude: obs.longitude,
+        placeGuess: obs.place_guess
+      },
+      observedOn: obs.observed_on,
+      photoUrl: obs.photos[0]?.url?.replace('square', 'medium'),
+      observer: obs.user?.login,
+      quality: obs.quality_grade
+    }));
+
+    // Cache the results
+    setCachedData(cacheKey, observations);
+    
+    res.json(observations);
+  } catch (error) {
+    console.error('Error fetching observations:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch observations',
+      observations: [] 
     });
   }
 });

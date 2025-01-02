@@ -178,15 +178,34 @@ async function displayAnimals(animals) {
   });
 }
 
-function updateAnimalDetails(animal) {
+async function fetchObservations(animalName) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/observations/${encodeURIComponent(animalName)}`);
+    if (!response.ok) throw new Error('Failed to fetch observations');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching observations:', error);
+    return [];
+  }
+}
+
+async function updateAnimalDetails(animal) {
   const animalDetails = document.getElementById('animalDetails');
+  
+  // Fetch observations while rendering the main content
+  const observations = await fetchObservations(animal.info.displayName);
+  
   animalDetails.innerHTML = `
     <div class="row">
       <div class="col-lg-8">
-        <h1 class="animal-title">${animal.name}</h1>
+        <h1 class="animal-title">
+          ${animal.info.displayName}
+          ${animal.name !== animal.info.displayName ? 
+            `<span class="search-term text-muted">(searched as: ${animal.name})</span>` : 
+            ''}
+        </h1>
         <div class="animal-scientific-name">${animal.info?.taxonomy?.scientific_name || 'Scientific name unknown'}</div>
         
-        <!-- LLM Generated Description with Markdown -->
         <div class="animal-info">
           <div class="generated-description">${marked.parse(animal.generatedDescription)}</div>
         </div>
@@ -216,6 +235,31 @@ function updateAnimalDetails(animal) {
                     <span class="text-muted">${key}:</span> ${value}
                   </div>
                 `).join('')}
+            </div>
+          </div>
+        ` : ''}
+        
+        ${observations.length > 0 ? `
+          <div class="characteristic-item mt-4">
+            <h6 class="text-uppercase mb-3">
+              <i class="bi bi-camera me-2"></i>Recent Observations
+            </h6>
+            <div class="observations-grid">
+              ${observations.map(obs => `
+                <div class="observation-card">
+                  ${obs.photoUrl ? `
+                    <img src="${obs.photoUrl}" alt="Observation of ${animal.name}" class="observation-image">
+                  ` : ''}
+                  <div class="observation-details">
+                    <div class="small text-muted">${new Date(obs.observedOn).toLocaleDateString()}</div>
+                    <div class="observation-location">
+                      <i class="bi bi-geo-alt me-1"></i>
+                      ${obs.location.placeGuess || 'Unknown location'}
+                    </div>
+                    <div class="observer">by ${obs.observer}</div>
+                  </div>
+                </div>
+              `).join('')}
             </div>
           </div>
         ` : ''}
