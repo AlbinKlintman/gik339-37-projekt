@@ -305,4 +305,36 @@ async function deleteAnimal(id) {
   } catch (error) {
     showToast('Failed to delete animal', 'error');
   }
+}
+
+async function deleteLastAnimal() {
+  try {
+    // Get all animals
+    const response = await fetch(`${API_BASE_URL}/animals`);
+    if (!response.ok) throw new Error('Failed to fetch animals');
+    
+    const animals = await response.json();
+    if (animals.length === 0) {
+      showToast('No animals to delete', 'error');
+      return;
+    }
+    
+    // Get the last animal
+    const lastAnimal = animals[animals.length - 1];
+    
+    if (!confirm(`Are you sure you want to delete ${lastAnimal.name}?`)) return;
+    
+    // Delete the last animal
+    const deleteResponse = await fetch(`${API_BASE_URL}/animals/${lastAnimal.id}`, {
+      method: 'DELETE'
+    });
+    
+    if (!deleteResponse.ok) throw new Error('Failed to delete animal');
+    
+    showToast(`Successfully deleted ${lastAnimal.name}`);
+    await loadAnimals();
+  } catch (error) {
+    console.error('Error deleting last animal:', error);
+    showToast('Failed to delete animal', 'error');
+  }
 } 

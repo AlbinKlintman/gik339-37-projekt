@@ -13,9 +13,14 @@
   <nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container">
       <span class="navbar-brand mb-0 h1">Animal Explorer</span>
-      <button class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#addAnimalModal">
-        <i class="bi bi-plus-lg"></i> Add Animal
-      </button>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#addAnimalModal">
+          <i class="bi bi-plus-lg"></i> Add Animal
+        </button>
+        <button class="btn btn-outline-light" onclick="deleteLastAnimal()">
+          <i class="bi bi-trash"></i> Delete 
+        </button>
+      </div>
     </div>
   </nav>
 
