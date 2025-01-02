@@ -1,8 +1,30 @@
+// Add cache management at the top of the file
+const IMAGE_CACHE_KEY = 'animalImageCache';
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+// Cache management functions
+function getImageCache() {
+  const cache = localStorage.getItem(IMAGE_CACHE_KEY);
+  return cache ? JSON.parse(cache) : {};
+}
+
+function setImageCache(cache) {
+  localStorage.setItem(IMAGE_CACHE_KEY, JSON.stringify(cache));
+}
+
 // Instead, use the API key directly (since it's a public key anyway)
 const UNSPLASH_ACCESS_KEY = '_QVElxtlOv5K98PBTh0gMMI27CctUGzyR6un46l5HHw';
 
 // Function to fetch image from Unsplash
 async function getAnimalImage(query) {
+  const cache = getImageCache();
+  const now = Date.now();
+
+  // Check if we have a valid cached image
+  if (cache[query] && cache[query].timestamp > now - CACHE_DURATION) {
+    return cache[query].url;
+  }
+
   try {
     const response = await fetch(
       `https://api.unsplash.com/photos/random?query=${query}&orientation=landscape`,
@@ -16,10 +38,19 @@ async function getAnimalImage(query) {
     if (!response.ok) throw new Error('Failed to fetch image');
     
     const data = await response.json();
+    
+    // Cache the new image
+    cache[query] = {
+      url: data.urls.regular,
+      timestamp: now
+    };
+    setImageCache(cache);
+    
     return data.urls.regular;
   } catch (error) {
     console.error('Error fetching Unsplash image:', error);
-    return null;
+    // Return cached image even if expired, as fallback
+    return cache[query]?.url || 'https://placehold.co/800x400/e9ecef/adb5bd?text=No+Image+Available';
   }
 }
 
@@ -86,13 +117,15 @@ const mockAnimals = [
 async function fetchAnimals() {
   await new Promise(resolve => setTimeout(resolve, 500));
   
-  // Ensure all animals have images
-  for (let animal of mockAnimals) {
-    if (!animal.imageUrl) {
-      animal.imageUrl = await getAnimalImage(animal.imageQuery || animal.name.toLowerCase()) 
-        || 'https://placehold.co/800x400/e9ecef/adb5bd?text=No+Image+Available';
-    }
-  }
+  // Fetch images only for animals that don't have an imageUrl
+  const fetchPromises = mockAnimals
+    .filter(animal => !animal.imageUrl)
+    .map(async animal => {
+      animal.imageUrl = await getAnimalImage(animal.imageQuery || animal.name.toLowerCase());
+    });
+
+  // Wait for all image fetches to complete
+  await Promise.all(fetchPromises);
   
   return mockAnimals;
 }
@@ -263,3 +296,27 @@ function showAnimalDetails(id) {
 }
 
 // Add the rest of your event handling code here... 
+
+// Add the missing setupEventListeners function
+function setupEventListeners() {
+  // Filter event listeners
+  document.getElementById('categoryFilter').addEventListener('change', filterAnimals);
+  document.getElementById('habitatFilter').addEventListener('change', filterAnimals);
+
+  // Form event listeners
+  document.getElementById('animalForm').addEventListener('submit', handleFormSubmit);
+}
+
+// Add a simple filter function
+function filterAnimals() {
+  const categoryFilter = document.getElementById('categoryFilter').value;
+  const habitatFilter = document.getElementById('habitatFilter').value;
+
+  const filteredAnimals = mockAnimals.filter(animal => {
+    const matchesCategory = !categoryFilter || animal.category === categoryFilter;
+    const matchesHabitat = !habitatFilter || animal.habitat === habitatFilter;
+    return matchesCategory && matchesHabitat;
+  });
+
+  displayAnimals(filteredAnimals);
+} 
