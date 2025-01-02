@@ -1,8 +1,24 @@
 // Instead, use the API key directly (since it's a public key anyway)
-const UNSPLASH_ACCESS_KEY = '_QVElxtlOv5K98PBTh0gMMI27CctUGzyR6un46l5HHw';
+const UNSPLASH_ACCESS_KEY = 'NOgDJ-n-JVMpuk-5NArfVsraj_Z_nUJMgZKdxCqzmw4';
+
+// Add this at the top of script.js
+const imageCache = new Map();
+
+// Add this to determine if we're in development mode
+const isDevelopment = window.location.hostname === 'localhost' || 
+                     window.location.hostname === '127.0.0.1';
 
 // Function to fetch image from Unsplash
 async function getAnimalImage(query) {
+  console.log(`🔍 Getting image for: ${query}`);
+  
+  // Check cache first
+  if (imageCache.has(query)) {
+    console.log(`📦 Found in cache for: ${query}`);
+    return imageCache.get(query);
+  }
+
+  console.log(`🌐 Fetching from Unsplash API for: ${query}`);
   try {
     const response = await fetch(
       `https://api.unsplash.com/photos/random?query=${query}&orientation=landscape`,
@@ -16,10 +32,20 @@ async function getAnimalImage(query) {
     if (!response.ok) throw new Error('Failed to fetch image');
     
     const data = await response.json();
-    return data.urls.regular;
+    const imageUrl = data.urls.regular;
+    
+    console.log(`✅ Successfully fetched Unsplash image for: ${query}`);
+    console.log(`💾 Caching new image for: ${query}`);
+    imageCache.set(query, imageUrl);
+    saveImageCache(); // Save to localStorage after each new cache
+    return imageUrl;
   } catch (error) {
-    console.error('Error fetching Unsplash image:', error);
-    return null;
+    console.error(`❌ Error fetching Unsplash image for ${query}:`, error);
+    // Use placeholder if fetch fails
+    const placeholderUrl = 'https://placehold.co/800x400/e9ecef/adb5bd?text=Animal+Image';
+    console.log(`⚠️ Using placeholder image for: ${query}`);
+    imageCache.set(query, placeholderUrl);
+    return placeholderUrl;
   }
 }
 
@@ -33,8 +59,7 @@ const mockAnimals = [
     diet: "carnivore",
     category: "mammals",
     habitat: "terrestrial",
-    lifespan: 15,
-    imageQuery: "lion" // Used to fetch from Unsplash
+    lifespan: 15
   },
   {
     id: 2,
@@ -44,8 +69,7 @@ const mockAnimals = [
     diet: "carnivore",
     category: "birds",
     habitat: "aquatic",
-    lifespan: 20,
-    imageQuery: "penguin" // Used to fetch from Unsplash
+    lifespan: 20
   },
   {
     id: 3,
@@ -55,8 +79,7 @@ const mockAnimals = [
     diet: "carnivore",
     category: "marine",
     habitat: "aquatic",
-    lifespan: 5,
-    imageQuery: "octopus" // Used to fetch from Unsplash
+    lifespan: 5
   },
   {
     id: 4,
@@ -66,8 +89,7 @@ const mockAnimals = [
     diet: "carnivore",
     category: "reptiles",
     habitat: "terrestrial",
-    lifespan: 5,
-    imageQuery: "treefrog" // Used to fetch from Unsplash
+    lifespan: 5
   },
   {
     id: 5,
@@ -77,8 +99,7 @@ const mockAnimals = [
     diet: "herbivore",
     category: "insects",
     habitat: "aerial",
-    lifespan: 1,
-    imageQuery: "monarch" // Used to fetch from Unsplash
+    lifespan: 1
   }
 ];
 
@@ -86,11 +107,10 @@ const mockAnimals = [
 async function fetchAnimals() {
   await new Promise(resolve => setTimeout(resolve, 500));
   
-  // Ensure all animals have images
+  // Only fetch images if the URL is missing or invalid
   for (let animal of mockAnimals) {
-    if (!animal.imageUrl) {
-      animal.imageUrl = await getAnimalImage(animal.imageQuery || animal.name.toLowerCase()) 
-        || 'https://placehold.co/800x400/e9ecef/adb5bd?text=No+Image+Available';
+    if (!animal.imageUrl || animal.imageUrl.includes('placehold.co')) {
+      animal.imageUrl = await getAnimalImage(animal.name.toLowerCase());
     }
   }
   
@@ -129,8 +149,35 @@ async function deleteAnimal(id) {
   throw new Error('Species not found');
 }
 
-// Main application code
+// Add these functions to manage the cache
+function loadImageCache() {
+  try {
+    const cached = localStorage.getItem('animalImageCache');
+    if (cached) {
+      const entries = JSON.parse(cached);
+      entries.forEach(([key, value]) => imageCache.set(key, value));
+      console.log(`📥 Loaded ${entries.length} images from cache`);
+    } else {
+      console.log('💭 No existing image cache found');
+    }
+  } catch (error) {
+    console.error('❌ Error loading image cache:', error);
+  }
+}
+
+function saveImageCache() {
+  try {
+    const entries = Array.from(imageCache.entries());
+    localStorage.setItem('animalImageCache', JSON.stringify(entries));
+    console.log(`📤 Saved ${entries.length} images to cache`);
+  } catch (error) {
+    console.error('❌ Error saving image cache:', error);
+  }
+}
+
+// Load cache when the page loads
 document.addEventListener('DOMContentLoaded', () => {
+  loadImageCache();
   loadAnimals();
   setupEventListeners();
 });
@@ -260,6 +307,123 @@ function showAnimalDetails(id) {
   };
 
   img.src = animal.imageUrl;
+}
+
+// Add these functions at the bottom of script.js
+
+function showFeedback(message) {
+  const feedbackMessage = document.getElementById('feedbackMessage');
+  feedbackMessage.textContent = message;
+  
+  const feedbackModal = new bootstrap.Modal(document.getElementById('feedbackModal'));
+  feedbackModal.show();
+}
+
+function setupEventListeners() {
+  // Form submission handler
+  const animalForm = document.getElementById('animalForm');
+  animalForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = {
+      name: document.getElementById('name').value,
+      species: document.getElementById('species').value,
+      funFact: document.getElementById('funFact').value,
+      diet: document.getElementById('diet').value,
+      category: document.getElementById('category').value,
+      habitat: document.getElementById('habitat').value,
+      lifespan: parseInt(document.getElementById('lifespan').value),
+      imageUrl: document.getElementById('imageUrl').value
+    };
+
+    const animalId = document.getElementById('animalId').value;
+    
+    try {
+      if (animalId) {
+        // Update existing animal
+        await updateAnimal(parseInt(animalId), formData);
+        showFeedback('Species updated successfully!');
+      } else {
+        // Add new animal
+        await addAnimal(formData);
+        showFeedback('New species added successfully!');
+      }
+      
+      // Refresh the list and close the modal
+      loadAnimals();
+      const modal = bootstrap.Modal.getInstance(document.getElementById('animalFormModal'));
+      modal.hide();
+      animalForm.reset();
+    } catch (error) {
+      showFeedback('Error: ' + error.message);
+    }
+  });
+
+  // Filter handlers
+  document.getElementById('categoryFilter').addEventListener('change', filterAnimals);
+  document.getElementById('habitatFilter').addEventListener('change', filterAnimals);
+
+  // Delete confirmation handler
+  document.getElementById('confirmDelete').addEventListener('click', async () => {
+    const animalId = parseInt(document.getElementById('confirmDelete').dataset.animalId);
+    try {
+      await deleteAnimal(animalId);
+      showFeedback('Species deleted successfully!');
+      loadAnimals();
+      const modal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+      modal.hide();
+    } catch (error) {
+      showFeedback('Error deleting species: ' + error.message);
+    }
+  });
+
+  document.querySelector('[data-bs-target="#animalFormModal"]').addEventListener('click', () => {
+    document.getElementById('modalTitle').textContent = 'Add New Species';
+    document.getElementById('animalId').value = '';
+    document.getElementById('animalForm').reset();
+  });
+}
+
+function filterAnimals() {
+  const categoryFilter = document.getElementById('categoryFilter').value;
+  const habitatFilter = document.getElementById('habitatFilter').value;
+  
+  const filteredAnimals = mockAnimals.filter(animal => {
+    const matchesCategory = !categoryFilter || animal.category === categoryFilter;
+    const matchesHabitat = !habitatFilter || animal.habitat === habitatFilter;
+    return matchesCategory && matchesHabitat;
+  });
+  
+  displayAnimals(filteredAnimals);
+}
+
+function editAnimal(id) {
+  const animal = mockAnimals.find(a => a.id === id);
+  if (!animal) return;
+
+  // Update modal title
+  document.getElementById('modalTitle').textContent = 'Edit Species';
+  
+  // Fill form with animal data
+  document.getElementById('animalId').value = animal.id;
+  document.getElementById('name').value = animal.name;
+  document.getElementById('species').value = animal.species;
+  document.getElementById('funFact').value = animal.funFact;
+  document.getElementById('diet').value = animal.diet;
+  document.getElementById('category').value = animal.category;
+  document.getElementById('habitat').value = animal.habitat;
+  document.getElementById('lifespan').value = animal.lifespan;
+  document.getElementById('imageUrl').value = animal.imageUrl;
+  
+  // Show the modal
+  const modal = new bootstrap.Modal(document.getElementById('animalFormModal'));
+  modal.show();
+}
+
+function confirmDelete(id) {
+  document.getElementById('confirmDelete').dataset.animalId = id;
+  const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+  modal.show();
 }
 
 // Add the rest of your event handling code here... 
