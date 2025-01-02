@@ -20,6 +20,13 @@ body {
     z-index: 1000;
     padding: 1.5rem 0;
     transition: all 0.3s ease;
+    max-width: 1200px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.navbar .container {
+    padding: 0 2rem;
 }
 
 .navbar.scrolled {
@@ -31,7 +38,8 @@ body {
 
 /* Polished carousel */
 .carousel {
-    height: 45vh;
+    width: 100%;
+    height: 65vh;
     background-color: #000;
     margin-bottom: 0;
     position: relative;
@@ -39,12 +47,11 @@ body {
 }
 
 .carousel-item {
-    height: 45vh;
-    position: relative;
+    height: 65vh;
 }
 
 .carousel-item img {
-    height: 45vh;
+    height: 65vh;
     width: 100%;
     object-fit: cover;
     filter: brightness(0.8);
@@ -87,11 +94,11 @@ body {
 
 /* Refined content section */
 .content-section {
-    padding: 2rem 0;
+    padding: 1.5rem 0;
     background-color: #fff;
     color: #000;
     position: relative;
-    height: calc(100vh - 45vh);
+    height: calc(100vh - 55vh);
     overflow-y: auto;
 }
 
@@ -100,7 +107,7 @@ body {
 }
 
 .content-wrapper {
-    max-width: 1200px;
+    width: 100%;
     margin: 0 auto;
     padding: 0 2rem;
     height: 100%;
@@ -108,26 +115,26 @@ body {
 
 /* Typography refinements */
 .animal-title {
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: 300;
     margin-bottom: 0.25rem;
     color: #000;
-    line-height: 1.1;
+    line-height: 1;
 }
 
 .animal-scientific-name {
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-style: italic;
     color: #666;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
     font-weight: 300;
 }
 
 .animal-info {
-    font-size: 1rem;
-    line-height: 1.5;
+    font-size: 0.95rem;
+    line-height: 1.4;
     color: #333;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     font-weight: 300;
 }
 
@@ -135,8 +142,8 @@ body {
 .characteristic-item {
     background-color: #f8f9fa;
     border-radius: 12px;
-    padding: 1rem;
-    margin-bottom: 1rem;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
     border: 1px solid #eee;
     transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -147,11 +154,11 @@ body {
 }
 
 .characteristic-item h6 {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: #666;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
 }
 
 /* Badge refinements */
@@ -182,14 +189,19 @@ body {
 
 /* Responsive refinements */
 @media (max-width: 768px) {
+    .container-fluid,
+    .navbar {
+        max-width: 100%;
+    }
+    
     .carousel,
     .carousel-item,
     .carousel-item img {
-        height: 35vh;
+        height: 45vh;
     }
     
     .content-section {
-        padding: 1.5rem 0;
+        height: calc(100vh - 45vh);
     }
     
     .animal-title {
@@ -225,13 +237,15 @@ body {
     height: 100vh;
     display: flex;
     flex-direction: column;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 /* Update carousel to have a fixed height */
 .carousel,
 .carousel-item,
 .carousel-item img {
-    height: 45vh;
-    min-height: 45vh;
-    max-height: 45vh;
+    height: 55vh;
+    min-height: 55vh;
+    max-height: 55vh;
 } 
