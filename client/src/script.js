@@ -1,4 +1,4 @@
-// MOCK DATA - DELETE THIS SECTION WHEN CONNECTING TO BACKEND
+/* // MOCK DATA - DELETE THIS SECTION WHEN CONNECTING TO BACKEND
 const mockAnimals = [
   {
     id: 1,
@@ -45,7 +45,7 @@ const mockAnimals = [
     category: "reptiles",
     habitat: "Indonesian Islands"
   }
-];
+]; */
 
 // Mock API functions - Replace these with real API calls later
 async function fetchAnimals() {
@@ -124,3 +124,17 @@ function displayAnimals(animals) {
 }
 
 // Rest of your application code... 
+
+const  url = 'http:localhost:3000/animals'
+
+window.addEventListener('load', fetchData);
+
+function fetchData() {
+  fetch(url)
+    .then((result) => result.json())
+    .then((animals) => {
+      console.log(animals);
+
+      displayAnimals(animals);
+    });
+}
