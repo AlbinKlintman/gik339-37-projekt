@@ -1,23 +1,65 @@
-.photo-card {
-    transition: transform 0.2s;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+/* Basic styling without animations */
+body {
+    background-color: #f8f9fa;
 }
 
-.photo-card:hover {
-    transform: scale(1.02);
-    cursor: pointer;
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+.navbar {
+    border-bottom: 1px solid #dee2e6;
+}
+
+.card {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .card-img-top {
     height: 200px;
     object-fit: cover;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
 }
 
-.navbar {
-    margin-bottom: 2rem;
+.card-body {
+    padding: 1.25rem;
 }
 
-.modal-dialog {
-    max-width: 500px;
+.btn-group {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.form-label {
+    font-weight: 500;
+    color: #212529;
+}
+
+.modal-content {
+    border: none;
+    border-radius: 8px;
+}
+
+/* Category-specific colors */
+.category-mammals {
+    border-left: 4px solid #dc3545;
+}
+
+.category-birds {
+    border-left: 4px solid #198754;
+}
+
+.category-reptiles {
+    border-left: 4px solid #fd7e14;
+}
+
+.category-marine {
+    border-left: 4px solid #0dcaf0;
+}
+
+.category-insects {
+    border-left: 4px solid #6f42c1;
 } 
