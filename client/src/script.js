@@ -158,20 +158,14 @@ function updateAnimalDetails(animal) {
         <h1 class="animal-title">${animal.name}</h1>
         <div class="animal-scientific-name">${animal.info?.taxonomy?.scientific_name || 'Scientific name unknown'}</div>
         
+        <!-- LLM Generated Description -->
         <div class="animal-info">
-          <p class="generated-description mb-4">${animal.generatedDescription}</p>
-          
-          ${animal.info?.characteristics?.habitat ? `
-            <p>${animal.info.characteristics.habitat}</p>
-          ` : ''}
-          
-          ${animal.info?.characteristics?.diet ? `
-            <p>${animal.info.characteristics.diet}</p>
-          ` : ''}
+          <p class="generated-description">${animal.generatedDescription}</p>
         </div>
       </div>
       
       <div class="col-lg-4">
+        <!-- Keep only essential Ninja API data -->
         ${animal.info?.locations ? `
           <div class="characteristic-item">
             <h6 class="text-uppercase mb-2">Locations</h6>
@@ -185,10 +179,10 @@ function updateAnimalDetails(animal) {
         
         ${animal.info?.taxonomy ? `
           <div class="characteristic-item">
-            <h6 class="text-uppercase mb-2">Taxonomy</h6>
+            <h6 class="text-uppercase mb-2">Classification</h6>
             <div class="small">
               ${Object.entries(animal.info.taxonomy)
-                .filter(([key, value]) => value && key !== 'scientific_name')
+                .filter(([key]) => ['class', 'order', 'family'].includes(key))
                 .map(([key, value]) => `
                   <div class="mb-1">
                     <span class="text-muted">${key}:</span> ${value}
