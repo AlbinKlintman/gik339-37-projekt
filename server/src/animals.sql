@@ -9,5 +9,7 @@ CREATE TABLE animals (
 
 -- Insert some initial animals
 INSERT INTO animals (name) VALUES
-    ('Panda'),
-    ('Tiger');
+    ('Rat'),
+    ('Lion'),
+    ('Tiger'),
+    ('Pigeon');

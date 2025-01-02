@@ -10,11 +10,11 @@ const db = new sqlite.Database('./src/animals.db');
 const imageCache = new Map();
 const CACHE_DURATION = 5 * 60 * 1000;
 const descriptionCache = new Map();
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
 
 console.log('Environment check:');
 console.log('PORT:', process.env.PORT);
-console.log('NINJA_API_KEY length:', process.env.NINJA_API_KEY?.length);
-console.log('NINJA_API_KEY first 10 chars:', process.env.NINJA_API_KEY?.substring(0, 10));
+console.log('GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? 'Present' : 'Missing');
 
 // Initialize database
 async function initializeDatabase() {
@@ -219,59 +219,58 @@ server.get("/config", (req, res) => {
 // Add this new endpoint for Gemini descriptions
 server.post("/generate-description", async (req, res) => {
   const { animalName, scientificName } = req.body;
-  const cacheKey = `${animalName}-${scientificName}`;
-  
+  const cacheKey = `description-${animalName}`;
+
   try {
     // Check cache first
-    const cached = getCachedData(cacheKey, descriptionCache);
-    if (cached) {
-      console.log('Returning cached description for:', animalName);
-      return res.json({ description: cached });
-    }
+    const cached = descriptionCache.get(cacheKey);
+    if (cached) return res.json({ description: cached });
 
-    const prompt = `Create a comprehensive description about the ${animalName} (${scientificName}). Start with a detailed overview paragraph without any title, then continue with the following sections:
+    const prompt = {
+      contents: [{
+        parts: [{
+          text: `Generate a detailed, engaging description of the ${animalName} (${scientificName || 'Scientific name unknown'}) following this EXACT format:
 
-${animalName} is... [Start directly with the overview paragraph describing physical features, size, and distinctive characteristics]
+[Write the overview paragraph here with NO heading above it. 2-3 sentences introducing the animal.]
 
-# Habitat & Distribution
-Write a detailed account of where this animal lives, including:
-- Preferred ecosystems and environments
-- Geographical range and distribution patterns
-- Adaptations to their habitat
-- Any seasonal migration patterns
+**Physical Characteristics**
 
-# Behavior & Lifestyle
-Provide comprehensive information about:
-- Daily activities and routines
-- Social structure and group dynamics
-- Hunting or feeding strategies
-- Mating rituals and reproductive behavior
-- Parental care and family life
-- Communication methods
-- Interactions with other species
+[Write the physical characteristics paragraph here. 3-4 sentences.]
 
-# Conservation Status
-Detail the current status of the species:
-- Population trends
-- Major threats to survival
-- Conservation efforts
-- Role in the ecosystem
-- Human impact and coexistence
+**Habitat and Distribution**
 
-Keep the writing engaging and informative, using clear language suitable for a general audience. Make each section detailed but concise, focusing on the most interesting and important aspects of the animal's life and behavior.`;
+[Write the habitat paragraph here. 3-4 sentences.]
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+**Behavior and Lifestyle**
+
+[Write the behavior paragraph here. 3-4 sentences.]
+
+**Diet and Hunting**
+
+[Write the diet paragraph here. 3-4 sentences.]
+
+Critical formatting rules:
+1. The overview paragraph MUST NOT have any heading above it
+2. Each section MUST have its bold title on a separate line above the paragraph
+3. Each section MUST be separated by exactly one blank line
+4. Each bold title MUST be followed by exactly one blank line before its paragraph
+5. Never include the animal's name as a heading
+6. Never use markdown headings (#), only use bold text (**)
+7. Keep all paragraphs between 3-4 sentences long (except overview: 2-3 sentences)
+8. Use clear, scientific language without speculation
+9. Follow this exact order: overview, physical, habitat, behavior, diet
+10. Maintain consistent double line breaks between sections`
+        }]
+      }]
+    };
+
+    const response = await fetch(GEMINI_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'x-goog-api-key': process.env.GEMINI_API_KEY,
       },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: prompt
-          }]
-        }]
-      })
+      body: JSON.stringify(prompt)
     });
 
     if (!response.ok) throw new Error('Failed to generate description');
@@ -280,13 +279,14 @@ Keep the writing engaging and informative, using clear language suitable for a g
     const description = data.candidates[0].content.parts[0].text;
     
     // Cache the result
-    setCachedData(cacheKey, description, descriptionCache);
+    descriptionCache.set(cacheKey, description);
     
     res.json({ description });
   } catch (error) {
     console.error('Error generating description:', error);
     res.status(500).json({ 
-      description: 'Unable to generate description at this time.'
+      error: 'Failed to generate description',
+      description: 'Description currently unavailable.' 
     });
   }
 });

@@ -328,7 +328,6 @@ body.bg-black {
 .generated-description {
     font-size: 0.95rem;
     line-height: 1.6;
-    color: #333;
 }
 
 .generated-description h1 {
@@ -354,8 +353,19 @@ body.bg-black {
 }
 
 .generated-description strong {
-    font-weight: 500;
-    color: #222;
+    display: block;
+    font-size: 1.1rem;
+    color: #333;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+.generated-description p:first-of-type {
+    margin-top: 0;
+}
+
+.generated-description p:last-of-type {
+    margin-bottom: 0;
 }
 
 .generated-description em {
@@ -392,11 +402,10 @@ body.bg-black {
     background: #f8f9fa;
     border-radius: 8px;
     overflow: hidden;
-    transition: transform 0.2s ease;
 }
 
 .observation-card:hover {
-    transform: translateY(-2px);
+    transform: none;
 }
 
 .observation-image {

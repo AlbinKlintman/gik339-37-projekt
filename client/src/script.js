@@ -238,12 +238,6 @@ async function updateAnimalDetails(animal) {
         ` : ''}
       </div>
     </div>`;
-
-  // Scroll to details
-  animalDetails.scrollIntoView({ 
-    behavior: 'smooth', 
-    block: 'start'
-  });
 }
 
 // Add new function to show detailed modal
