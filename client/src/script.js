@@ -17,6 +17,39 @@ document.addEventListener('scroll', () => {
   }
 });
 
+document.addEventListener('scroll', () => {
+  const navbar = document.querySelector('.navbar');
+  const carousel = document.getElementById('animalCarousel');
+  const contentSection = document.querySelector('.content-section');
+  const scrollPosition = window.scrollY;
+  
+  // Handle navbar
+  if (scrollPosition > 50) {
+    navbar.classList.add('scrolled');
+  } else {
+    navbar.classList.remove('scrolled');
+  }
+  
+  // Handle content focus
+  if (scrollPosition > window.innerHeight * 0.2) { // 20% of viewport height
+    carousel.classList.add('minimized');
+    contentSection.classList.add('focus-active');
+    
+    // Ensure content is visible
+    if (!contentSection.hasAttribute('data-scrolled')) {
+      contentSection.setAttribute('data-scrolled', 'true');
+      contentSection.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start'
+      });
+    }
+  } else {
+    carousel.classList.remove('minimized');
+    contentSection.classList.remove('focus-active');
+    contentSection.removeAttribute('data-scrolled');
+  }
+});
+
 function showLoading(show = true) {
   const skeleton = document.getElementById('skeletonLoading');
   const content = document.querySelector('.container-fluid');
@@ -158,9 +191,9 @@ function updateAnimalDetails(animal) {
         <h1 class="animal-title">${animal.name}</h1>
         <div class="animal-scientific-name">${animal.info?.taxonomy?.scientific_name || 'Scientific name unknown'}</div>
         
-        <!-- LLM Generated Description -->
+        <!-- LLM Generated Description with Markdown -->
         <div class="animal-info">
-          <p class="generated-description">${animal.generatedDescription}</p>
+          <div class="generated-description">${marked.parse(animal.generatedDescription)}</div>
         </div>
       </div>
       
@@ -194,6 +227,13 @@ function updateAnimalDetails(animal) {
       </div>
     </div>
   `;
+  
+  // Add smooth scroll to content after update
+  const contentSection = document.querySelector('.content-section');
+  contentSection.scrollIntoView({ 
+    behavior: 'smooth', 
+    block: 'start'
+  });
 }
 
 // Add new function to show detailed modal

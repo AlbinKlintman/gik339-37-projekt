@@ -43,7 +43,7 @@ body {
     background-color: #000;
     margin-bottom: 0;
     position: relative;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .carousel-item {
@@ -100,6 +100,8 @@ body {
     position: relative;
     height: calc(100vh - 55vh);
     overflow-y: auto;
+    scroll-margin-top: 80px;
+    scroll-behavior: smooth;
 }
 
 .content-section::before {
@@ -319,4 +321,60 @@ body {
 /* Fix body class in HTML */
 body.bg-black {
     background-color: #fff !important;
+}
+
+/* Add these styles for markdown content */
+.generated-description {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #333;
+}
+
+.generated-description h1 {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #222;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.generated-description h1:first-child {
+    margin-top: 0;
+}
+
+.generated-description p {
+    margin-bottom: 1.2rem;
+}
+
+.generated-description p:last-child {
+    margin-bottom: 0;
+}
+
+.generated-description strong {
+    font-weight: 500;
+    color: #222;
+}
+
+.generated-description em {
+    color: #444;
+}
+
+/* Add styles for the content focus state */
+.content-section.focus-active {
+    background-color: #fff;
+    box-shadow: 0 -20px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Add transition for minimized carousel */
+.carousel.minimized {
+    height: 30vh !important;
+    min-height: 30vh !important;
+}
+
+.carousel.minimized .carousel-item,
+.carousel.minimized .carousel-item img {
+    height: 30vh !important;
+    min-height: 30vh !important;
 } 

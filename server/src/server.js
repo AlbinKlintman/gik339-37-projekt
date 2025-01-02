@@ -178,9 +178,18 @@ server.post("/generate-description", async (req, res) => {
       return res.json({ description: cached });
     }
 
-    const prompt = `Write a detailed but concise paragraph about the ${animalName} (${scientificName}). 
-                   Include interesting facts about its behavior, habitat, and unique characteristics. 
-                   Keep it engaging and informative, suitable for a general audience.`;
+    const prompt = `Create an engaging description about the ${animalName} (${scientificName}) using the following markdown structure:
+
+# Overview
+Write a paragraph introducing the animal and its most distinctive physical features. Include size, appearance, and any unique characteristics that make it immediately recognizable.
+
+# Habitat & Distribution
+Describe where this animal lives, its preferred environment, and its geographical distribution.
+
+# Behavior & Lifestyle
+Detail interesting behaviors, social structure, and daily activities. Include hunting/feeding habits if relevant.
+
+Keep each section concise but informative, using clear and engaging language suitable for a general audience. Use proper markdown formatting with the exact headings as shown above.`;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`, {
       method: 'POST',
