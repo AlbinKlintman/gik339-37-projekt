@@ -1,7 +1,12 @@
 const API_BASE_URL = 'http://localhost:3000';
+let GEMINI_API_KEY = null;
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
 
 // Load animals when page loads
-document.addEventListener('DOMContentLoaded', loadAnimals);
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadConfig();
+  await loadAnimals();
+});
 
 document.addEventListener('scroll', () => {
   const navbar = document.querySelector('.navbar');
@@ -37,6 +42,29 @@ function showToast(message, type = 'success') {
   bsToast.show();
 }
 
+async function generateAnimalDescription(animalName, scientificName) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/generate-description`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        animalName,
+        scientificName
+      })
+    });
+
+    if (!response.ok) throw new Error('Failed to generate description');
+    
+    const data = await response.json();
+    return data.description;
+  } catch (error) {
+    console.error('Error generating description:', error);
+    return 'Unable to generate description at this time.';
+  }
+}
+
 async function loadAnimals() {
   showLoading(true);
   try {
@@ -56,13 +84,25 @@ async function loadAnimals() {
           if (!infoResponse.ok) throw new Error(`Failed to fetch info for ${animal.name}`);
           
           const details = await infoResponse.json();
-          return { ...animal, ...details };
+          
+          // Generate description using Gemini
+          const description = await generateAnimalDescription(
+            animal.name, 
+            details.info?.taxonomy?.scientific_name || 'Scientific name unknown'
+          );
+          
+          return { 
+            ...animal, 
+            ...details,
+            generatedDescription: description 
+          };
         } catch (error) {
           console.error(`Error loading details for ${animal.name}:`, error);
           return {
             ...animal,
             info: null,
-            imageUrl: 'https://placehold.co/800x400/e9ecef/adb5bd?text=Image+Not+Found'
+            imageUrl: 'https://placehold.co/800x400/e9ecef/adb5bd?text=Image+Not+Found',
+            generatedDescription: 'Description unavailable.'
           };
         }
       })
@@ -119,6 +159,8 @@ function updateAnimalDetails(animal) {
         <div class="animal-scientific-name">${animal.info?.taxonomy?.scientific_name || 'Scientific name unknown'}</div>
         
         <div class="animal-info">
+          <p class="generated-description mb-4">${animal.generatedDescription}</p>
+          
           ${animal.info?.characteristics?.habitat ? `
             <p>${animal.info.characteristics.habitat}</p>
           ` : ''}
@@ -347,5 +389,18 @@ async function deleteLastAnimal() {
   } catch (error) {
     console.error('Error deleting last animal:', error);
     showToast('Failed to delete animal', 'error');
+  }
+}
+
+// Add this function to load the config
+async function loadConfig() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/config`);
+    if (!response.ok) throw new Error('Failed to load config');
+    const config = await response.json();
+    GEMINI_API_KEY = config.geminiApiKey;
+  } catch (error) {
+    console.error('Error loading config:', error);
+    showToast('Failed to load configuration', 'error');
   }
 } 

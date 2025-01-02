@@ -9,6 +9,7 @@ const server = express();
 const db = new sqlite.Database('./src/animals.db');
 const imageCache = new Map();
 const CACHE_DURATION = 15 * 60 * 1000;
+const descriptionCache = new Map();
 
 console.log('Environment check:');
 console.log('PORT:', process.env.PORT);
@@ -153,6 +154,61 @@ server.get("/animal-info/:name", async (req, res) => {
         characteristics: { habitat: 'Unknown', diet: 'Unknown' }
       },
       imageUrl: 'https://placehold.co/800x400/e9ecef/adb5bd?text=Image+Not+Found'
+    });
+  }
+});
+
+// Add this new endpoint to expose the API key
+server.get("/config", (req, res) => {
+  res.json({
+    geminiApiKey: process.env.GEMINI_API_KEY
+  });
+});
+
+// Add this new endpoint for Gemini descriptions
+server.post("/generate-description", async (req, res) => {
+  const { animalName, scientificName } = req.body;
+  const cacheKey = `${animalName}-${scientificName}`;
+  
+  try {
+    // Check cache first
+    const cached = getCachedData(cacheKey, descriptionCache);
+    if (cached) {
+      console.log('Returning cached description for:', animalName);
+      return res.json({ description: cached });
+    }
+
+    const prompt = `Write a detailed but concise paragraph about the ${animalName} (${scientificName}). 
+                   Include interesting facts about its behavior, habitat, and unique characteristics. 
+                   Keep it engaging and informative, suitable for a general audience.`;
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: prompt
+          }]
+        }]
+      })
+    });
+
+    if (!response.ok) throw new Error('Failed to generate description');
+    
+    const data = await response.json();
+    const description = data.candidates[0].content.parts[0].text;
+    
+    // Cache the result
+    setCachedData(cacheKey, description, descriptionCache);
+    
+    res.json({ description });
+  } catch (error) {
+    console.error('Error generating description:', error);
+    res.status(500).json({ 
+      description: 'Unable to generate description at this time.'
     });
   }
 });
