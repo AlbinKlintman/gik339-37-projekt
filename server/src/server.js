@@ -32,3 +32,16 @@ server.get("/animals", (req, res) => {
     }
   })
 })
+
+console.log(animalsForm);
+animalsForm.addEventListener("submit", handleSubmit);
+
+function handleSubmit(e) {
+  e.preventDefault();
+  const serverAnimalObject = {
+    animalName:"",
+    color: "",
+    food: ""
+  };
+  console.log(animalsForm.animalName.value);
+}
