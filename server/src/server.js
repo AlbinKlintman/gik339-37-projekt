@@ -1,118 +1,171 @@
-console.log("start of server");
-
-const sqlite = require("sqlite3").verbose();
-const db = new sqlite.Database('./src/animals.db');
-
+require('dotenv').config();
 const express = require('express');
-const server = express();
-
+const sqlite = require("sqlite3").verbose();
+const fs = require('fs').promises;
+const path = require('path');
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
-const UNSPLASH_ACCESS_KEY = 'NOgDJ-n-JVMpuk-5NArfVsraj_Z_nUJMgZKdxCqzmw4';
-
-// Add image cache with 5-minute expiration
+const server = express();
+const db = new sqlite.Database('./src/animals.db');
 const imageCache = new Map();
-const CACHE_DURATION = 15 * 60 * 1000; // 5 minutes in milliseconds
+const CACHE_DURATION = 15 * 60 * 1000;
 
-// Helper function to get/set cache
-function getCachedImage(query) {
-  const cached = imageCache.get(query);
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    console.log(`🎯 Cache hit for: ${query}`);
-    return cached.imageUrl;
+console.log('Environment check:');
+console.log('PORT:', process.env.PORT);
+console.log('NINJA_API_KEY length:', process.env.NINJA_API_KEY?.length);
+console.log('NINJA_API_KEY first 10 chars:', process.env.NINJA_API_KEY?.substring(0, 10));
+
+// Initialize database
+async function initializeDatabase() {
+  try {
+    // Read SQL file
+    const sqlFile = await fs.readFile(path.join(__dirname, 'animals.sql'), 'utf8');
+    
+    // Split into individual statements and execute them
+    return new Promise((resolve, reject) => {
+      db.serialize(() => {
+        db.exec(sqlFile, (err) => {
+          if (err) {
+            console.error('Database initialization error:', err);
+            reject(err);
+          } else {
+            console.log('Database initialized successfully');
+            resolve();
+          }
+        });
+      });
+    });
+  } catch (error) {
+    console.error('Failed to read SQL file:', error);
+    throw error;
   }
-  return null;
 }
 
-function setCachedImage(query, imageUrl) {
-  console.log(`💾 Caching image for: ${query}`);
-  imageCache.set(query, {
-    imageUrl,
-    timestamp: Date.now()
-  });
-}
+// Basic middleware
+server.use(express.json())
+      .use(express.urlencoded({ extended: false }))
+      .use((req, res, next) => {
+        res.header("Access-Control-Allow-Origin", '*');
+        res.header("Access-Control-Allow-Headers", '*');
+        res.header("Access-Control-Allow-Methods", '*');
+        next();
+      });
 
-server
-  .use(express.json())
-  .use(express.urlencoded({ extended: false }))
-  .use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", '*');
-    res.header("Access-Control-Allow-Headers", '*');
-    res.header("Access-Control-Allow-Methods", '*');
-
-    next();
-});
-
-const startServer = (port) => {
-  server.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
-  }).on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-      console.log(`Port ${port} is busy, trying ${port + 1}...`);
-      startServer(port + 1);
-    } else {
-      console.error('Server error:', err);
-    }
-  });
+// Cache functions
+const getCachedData = (key) => {
+  const cached = imageCache.get(key);
+  return (cached && Date.now() - cached.timestamp < CACHE_DURATION) ? cached.data : null;
 };
 
-startServer(3000);
+const setCachedData = (key, data) => {
+  imageCache.set(key, { data, timestamp: Date.now() });
+};
 
+// Routes
 server.get("/animals", (req, res) => {
-  const sql = "SELECT * FROM animals";
+  db.all("SELECT * FROM animals", (err, rows) => {
+    err ? res.status(500).send(err) : res.send(rows);
+  });
+});
 
-  db.all(sql, (err, rows) => {
-    if (err) {
-      res.status(500).send(err);
-    } else { 
-      res.send(rows);
-    }
-  })
-})
+server.post("/animals", (req, res) => {
+  const { name } = req.body;
+  db.run("INSERT INTO animals (name) VALUES (?)", [name], (err) => {
+    err ? res.status(500).send(err) : res.json({ id: this.lastID, name });
+  });
+});
 
-server.get("/animal-image/:query", async (req, res) => {
-  const query = req.params.query;
-  console.log(`🔍 Getting image for: ${query}`);
+server.delete("/animals/:id", (req, res) => {
+  db.run("DELETE FROM animals WHERE id = ?", [req.params.id], (err) => {
+    err ? res.status(500).send(err) : res.sendStatus(200);
+  });
+});
 
-  // Check cache first
-  const cachedUrl = getCachedImage(query);
-  if (cachedUrl) {
-    console.log(`✨ Returning cached image for: ${query}`);
-    return res.json({ imageUrl: cachedUrl });
+// Animal info endpoint (combines Ninja API and Unsplash)
+server.get("/animal-info/:name", async (req, res) => {
+  const name = req.params.name;
+  const cached = getCachedData(name);
+  
+  if (cached) {
+    console.log('Returning cached data for:', name);
+    return res.json(cached);
   }
 
-  // If not in cache, fetch from Unsplash
-  const enhancedQuery = `${query} animal wildlife nature`;
-  const unsplashUrl = `https://api.unsplash.com/photos/random?query=${encodeURIComponent(enhancedQuery)}&orientation=landscape`;
-  
   try {
-    const response = await fetch(unsplashUrl, {
-      headers: {
-        'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`
+    console.log('Fetching new data for:', name);
+    console.log('Using API Key:', process.env.NINJA_API_KEY);
+    
+    // Get animal info from Ninja API
+    const ninjaResponse = await fetch(
+      `https://api.api-ninjas.com/v1/animals?name=${encodeURIComponent(name)}`,
+      { 
+        method: 'GET',
+        headers: { 
+          'X-Api-Key': process.env.NINJA_API_KEY.trim()
+        }
       }
-    });
+    );
     
-    if (!response.ok) {
-      throw new Error(`Unsplash API error: ${response.status} ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    if (!data.urls || !data.urls.regular) {
-      throw new Error('Invalid image data from Unsplash');
+    if (!ninjaResponse.ok) {
+      const errorText = await ninjaResponse.text();
+      console.error('Ninja API Error:', errorText);
+      console.error('Response status:', ninjaResponse.status);
+      console.error('Response headers:', ninjaResponse.headers);
+      throw new Error(`Animal API error: ${errorText}`);
     }
 
-    const imageUrl = data.urls.regular;
-    console.log(`✅ Successfully fetched new image for: ${query}`);
+    const animalData = await ninjaResponse.json();
+    console.log('Ninja API response:', animalData);
+
+    // Get image from Unsplash
+    const unsplashResponse = await fetch(
+      `https://api.unsplash.com/photos/random?query=${encodeURIComponent(name + ' animal')}&orientation=landscape`,
+      { 
+        headers: { 
+          'Authorization': `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}`
+        }
+      }
+    );
     
-    // Cache the new image
-    setCachedImage(query, imageUrl);
-    
-    res.json({ imageUrl });
+    if (!unsplashResponse.ok) {
+      console.error('Unsplash API Error:', await unsplashResponse.text());
+      throw new Error('Image API error');
+    }
+
+    const imageData = await unsplashResponse.json();
+
+    const combinedData = {
+      info: animalData[0] || null,
+      imageUrl: imageData.urls?.regular || null
+    };
+
+    console.log('Combined data:', combinedData);
+    setCachedData(name, combinedData);
+    res.json(combinedData);
   } catch (error) {
-    console.error(`❌ Error fetching image for ${query}:`, error);
+    console.error('Error fetching animal info:', error);
+    // Return a more graceful error response
     res.status(500).json({ 
       error: error.message,
-      imageUrl: null
+      info: {
+        name: name,
+        taxonomy: { scientific_name: 'Not found' },
+        characteristics: { habitat: 'Unknown', diet: 'Unknown' }
+      },
+      imageUrl: 'https://placehold.co/800x400/e9ecef/adb5bd?text=Image+Not+Found'
     });
   }
 });
+
+// Start server with database initialization
+const port = process.env.PORT || 3000;
+initializeDatabase()
+  .then(() => {
+    server.listen(port, () => {
+      console.log(`Server running on http://localhost:${port}`);
+    });
+  })
+  .catch(err => {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  });
