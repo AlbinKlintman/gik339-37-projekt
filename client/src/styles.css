@@ -160,4 +160,73 @@ body {
 /* Update modal styling for larger images */
 .modal-lg {
     max-width: 800px;
+}
+
+/* Card hover effect */
+.hover-effect {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.hover-effect:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+
+/* Icons in cards */
+.card .bi {
+  margin-right: 0.5rem;
+}
+
+/* Taxonomy details section */
+.taxonomy-details {
+  font-size: 0.875rem;
+  background-color: rgba(0,0,0,0.02);
+  border-left: 3px solid var(--bs-primary);
+}
+
+/* Modal improvements */
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-header {
+  background-color: var(--bs-primary);
+  color: white;
+}
+
+.modal-header .btn-close {
+  filter: brightness(0) invert(1);
+}
+
+/* Image hover effect */
+.card-img-top {
+  transition: filter 0.3s ease;
+}
+
+.card:hover .card-img-top {
+  filter: brightness(1.1);
+}
+
+/* List styling in modal */
+.modal-body ul li {
+  padding: 0.5rem;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.modal-body ul li:last-child {
+  border-bottom: none;
+}
+
+/* Toast improvements */
+.toast {
+  background-color: white;
+  border-left: 4px solid var(--bs-primary);
+}
+
+.toast.bg-success {
+  border-left-color: var(--bs-success);
+}
+
+.toast.bg-danger {
+  border-left-color: var(--bs-danger);
 } 

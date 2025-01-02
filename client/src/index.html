@@ -8,38 +8,71 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 </head>
 <body class="bg-light">
-  <nav class="navbar navbar-dark bg-primary mb-4">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
     <div class="container">
-      <span class="navbar-brand">🦁 Animal Explorer</span>
-      <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#addAnimalModal">
+      <span class="navbar-brand mb-0 h1">
+        <i class="bi bi-globe"></i> Animal Explorer
+      </span>
+      <button class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#addAnimalModal">
         <i class="bi bi-plus-lg"></i> Add Animal
       </button>
     </div>
   </nav>
 
   <div class="container">
-    <div class="row" id="animalList">
+    <div id="loadingSpinner" class="text-center d-none">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+    
+    <div class="row g-4" id="animalList">
       <!-- Animals will be loaded here -->
     </div>
   </div>
 
-  <!-- Add Animal Modal -->
-  <div class="modal fade" id="addAnimalModal">
+  <div class="modal fade" id="addAnimalModal" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Add New Animal</h5>
+          <h5 class="modal-title">
+            <i class="bi bi-plus-circle"></i> Add New Animal
+          </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <form id="animalForm" onsubmit="addAnimal(event)">
             <div class="mb-3">
               <label for="animalName" class="form-label">Animal Name</label>
-              <input type="text" class="form-control" id="animalName" required>
+              <input type="text" 
+                     class="form-control" 
+                     id="animalName" 
+                     required 
+                     placeholder="Enter animal name"
+                     pattern="[A-Za-z\s]+"
+                     title="Please enter only letters and spaces">
+              <div class="form-text">Enter the common name of the animal (e.g., Lion, Penguin)</div>
             </div>
-            <button type="submit" class="btn btn-primary">Add Animal</button>
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Add Animal
+              </button>
+            </div>
           </form>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="notificationToast" class="toast" role="alert">
+      <div class="toast-header">
+        <i class="bi bi-info-circle me-2"></i>
+        <strong class="me-auto">Notification</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+      </div>
+      <div class="toast-body" id="toastMessage">
+        <!-- Message will be inserted here -->
       </div>
     </div>
   </div>
