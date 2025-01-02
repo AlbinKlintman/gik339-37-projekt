@@ -3,9 +3,26 @@ const API_BASE_URL = 'http://localhost:3000';
 // Load animals when page loads
 document.addEventListener('DOMContentLoaded', loadAnimals);
 
+document.addEventListener('scroll', () => {
+  const navbar = document.querySelector('.navbar');
+  if (window.scrollY > 50) {
+    navbar.classList.add('scrolled');
+  } else {
+    navbar.classList.remove('scrolled');
+  }
+});
+
 function showLoading(show = true) {
-  const spinner = document.getElementById('loadingSpinner');
-  spinner.classList.toggle('d-none', !show);
+  const skeleton = document.getElementById('skeletonLoading');
+  const content = document.querySelector('.container-fluid');
+  
+  if (show) {
+    skeleton.classList.remove('d-none');
+    content.classList.add('d-none');
+  } else {
+    skeleton.classList.add('d-none');
+    content.classList.remove('d-none');
+  }
 }
 
 function showToast(message, type = 'success') {
@@ -28,8 +45,8 @@ async function loadAnimals() {
     
     const animals = await response.json();
     
-    const animalList = document.getElementById('animalList');
-    animalList.innerHTML = '<div class="text-center"><div class="spinner-border"></div></div>';
+    // Add minimal delay to prevent flash
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     // Load details for each animal
     const animalDetails = await Promise.all(
@@ -39,7 +56,6 @@ async function loadAnimals() {
           if (!infoResponse.ok) throw new Error(`Failed to fetch info for ${animal.name}`);
           
           const details = await infoResponse.json();
-          console.log(`Details for ${animal.name}:`, details);
           return { ...animal, ...details };
         } catch (error) {
           console.error(`Error loading details for ${animal.name}:`, error);
@@ -61,34 +77,87 @@ async function loadAnimals() {
   }
 }
 
-function displayAnimals(animals) {
-  const animalList = document.getElementById('animalList');
-  animalList.innerHTML = animals.map(animal => `
-    <div class="col-sm-6 col-lg-4 mb-4">
-      <div class="card h-100 shadow-sm hover-effect">
-        <div class="position-relative">
-          <img src="${animal.imageUrl || 'https://placehold.co/800x400/e9ecef/adb5bd?text=No+Image'}" 
-               class="card-img-top" 
-               alt="${animal.name}"
-               style="height: 250px; object-fit: cover;">
-        </div>
-        <div class="card-body d-flex flex-column">
-          <div class="d-flex justify-content-between align-items-start mb-2">
-            <div>
-              <h5 class="card-title mb-0">${animal.name}</h5>
-              <p class="text-muted small mb-2 fst-italic">${animal.info?.taxonomy?.scientific_name || 'Unknown'}</p>
-            </div>
-          </div>
-          
-          <div class="card-actions mt-auto">
-            <button class="btn btn-primary btn-sm w-100" onclick="showAnimalDetails(${JSON.stringify(animal).replace(/"/g, '&quot;')})">
-              <i class="bi bi-info-circle"></i> More Information
-            </button>
-          </div>
-        </div>
-      </div>
+async function displayAnimals(animals) {
+  const carouselInner = document.getElementById('carouselInner');
+  const animalDetails = document.getElementById('animalDetails');
+  
+  // Create carousel items
+  carouselInner.innerHTML = animals.map((animal, index) => `
+    <div class="carousel-item ${index === 0 ? 'active' : ''}">
+      <img src="${animal.imageUrl}" class="d-block w-100" alt="${animal.name}">
     </div>
   `).join('');
+
+  // Add carousel indicators
+  const indicators = document.querySelector('.carousel-indicators');
+  indicators.innerHTML = animals.map((_, index) => `
+    <button type="button" 
+            data-bs-target="#animalCarousel" 
+            data-bs-slide-to="${index}" 
+            ${index === 0 ? 'class="active" aria-current="true"' : ''} 
+            aria-label="Slide ${index + 1}">
+    </button>
+  `).join('');
+
+  // Create details section
+  updateAnimalDetails(animals[0]);
+
+  // Add carousel event listener
+  const carousel = document.getElementById('animalCarousel');
+  carousel.addEventListener('slide.bs.carousel', (event) => {
+    const animal = animals[event.to];
+    updateAnimalDetails(animal);
+  });
+}
+
+function updateAnimalDetails(animal) {
+  const animalDetails = document.getElementById('animalDetails');
+  animalDetails.innerHTML = `
+    <div class="row">
+      <div class="col-lg-8">
+        <h1 class="animal-title">${animal.name}</h1>
+        <div class="animal-scientific-name">${animal.info?.taxonomy?.scientific_name || 'Scientific name unknown'}</div>
+        
+        <div class="animal-info">
+          ${animal.info?.characteristics?.habitat ? `
+            <p>${animal.info.characteristics.habitat}</p>
+          ` : ''}
+          
+          ${animal.info?.characteristics?.diet ? `
+            <p>${animal.info.characteristics.diet}</p>
+          ` : ''}
+        </div>
+      </div>
+      
+      <div class="col-lg-4">
+        ${animal.info?.locations ? `
+          <div class="characteristic-item">
+            <h6 class="text-uppercase mb-2">Locations</h6>
+            <div class="d-flex flex-wrap gap-2">
+              ${animal.info.locations.map(location => `
+                <span class="badge bg-light text-dark">${location}</span>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+        
+        ${animal.info?.taxonomy ? `
+          <div class="characteristic-item">
+            <h6 class="text-uppercase mb-2">Taxonomy</h6>
+            <div class="small">
+              ${Object.entries(animal.info.taxonomy)
+                .filter(([key, value]) => value && key !== 'scientific_name')
+                .map(([key, value]) => `
+                  <div class="mb-1">
+                    <span class="text-muted">${key}:</span> ${value}
+                  </div>
+                `).join('')}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  `;
 }
 
 // Add new function to show detailed modal
@@ -245,6 +314,38 @@ async function deleteAnimal(id) {
     showToast('Animal deleted successfully');
     await loadAnimals();
   } catch (error) {
+    showToast('Failed to delete animal', 'error');
+  }
+}
+
+async function deleteLastAnimal() {
+  try {
+    // Get all animals
+    const response = await fetch(`${API_BASE_URL}/animals`);
+    if (!response.ok) throw new Error('Failed to fetch animals');
+    
+    const animals = await response.json();
+    if (animals.length === 0) {
+      showToast('No animals to delete', 'error');
+      return;
+    }
+    
+    // Get the last animal
+    const lastAnimal = animals[animals.length - 1];
+    
+    if (!confirm(`Are you sure you want to delete ${lastAnimal.name}?`)) return;
+    
+    // Delete the last animal
+    const deleteResponse = await fetch(`${API_BASE_URL}/animals/${lastAnimal.id}`, {
+      method: 'DELETE'
+    });
+    
+    if (!deleteResponse.ok) throw new Error('Failed to delete animal');
+    
+    showToast(`Successfully deleted ${lastAnimal.name}`);
+    await loadAnimals();
+  } catch (error) {
+    console.error('Error deleting last animal:', error);
     showToast('Failed to delete animal', 'error');
   }
 } 
