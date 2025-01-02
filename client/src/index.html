@@ -24,10 +24,39 @@
     </div>
   </nav>
 
-  <!-- Add loading spinner -->
-  <div id="loadingSpinner" class="position-fixed top-50 start-50 translate-middle d-none">
-    <div class="spinner-border text-light" role="status">
-      <span class="visually-hidden">Loading...</span>
+  <!-- Replace loading spinner with skeleton loading -->
+  <div id="skeletonLoading" class="d-none">
+    <div class="container-fluid px-0">
+      <!-- Carousel skeleton -->
+      <div class="skeleton skeleton-carousel"></div>
+      
+      <!-- Content section skeleton -->
+      <section class="content-section">
+        <div class="content-wrapper">
+          <!-- Title area -->
+          <div class="skeleton skeleton-title"></div>
+          <div class="skeleton skeleton-subtitle"></div>
+          
+          <!-- Main content area -->
+          <div class="skeleton skeleton-paragraph mb-4"></div>
+          
+          <!-- Characteristics area -->
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="skeleton skeleton-card"></div>
+            </div>
+            <div class="col-md-6">
+              <div class="skeleton skeleton-card"></div>
+            </div>
+            <div class="col-md-6">
+              <div class="skeleton skeleton-card"></div>
+            </div>
+            <div class="col-md-6">
+              <div class="skeleton skeleton-card"></div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 

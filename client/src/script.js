@@ -13,8 +13,16 @@ document.addEventListener('scroll', () => {
 });
 
 function showLoading(show = true) {
-  const spinner = document.getElementById('loadingSpinner');
-  spinner.classList.toggle('d-none', !show);
+  const skeleton = document.getElementById('skeletonLoading');
+  const content = document.querySelector('.container-fluid');
+  
+  if (show) {
+    skeleton.classList.remove('d-none');
+    content.classList.add('d-none');
+  } else {
+    skeleton.classList.add('d-none');
+    content.classList.remove('d-none');
+  }
 }
 
 function showToast(message, type = 'success') {
@@ -36,6 +44,9 @@ async function loadAnimals() {
     if (!response.ok) throw new Error('Failed to fetch animals');
     
     const animals = await response.json();
+    
+    // Add minimal delay to prevent flash
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     // Load details for each animal
     const animalDetails = await Promise.all(
