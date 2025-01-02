@@ -1,6 +1,6 @@
 /* Reset and base styles */
 body {
-    background-color: #fff;
+    background-color: #fff !important;
     color: #000;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -54,8 +54,8 @@ body {
     height: 65vh;
     width: 100%;
     object-fit: cover;
-    filter: brightness(0.8);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: brightness(0.9);
+    transition: none;
 }
 
 .carousel-item:hover img {
@@ -145,12 +145,12 @@ body {
     padding: 0.75rem;
     margin-bottom: 0.75rem;
     border: 1px solid #eee;
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: none;
 }
 
 .characteristic-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transform: none;
+    box-shadow: none;
 }
 
 .characteristic-item h6 {
@@ -170,11 +170,11 @@ body {
     background-color: #f0f0f0;
     color: #666;
     margin: 0.25rem;
-    transition: all 0.2s ease;
+    transition: none;
 }
 
 .badge:hover {
-    background-color: #e0e0e0;
+    background-color: #f0f0f0;
 }
 
 /* Metadata section */
@@ -239,6 +239,7 @@ body {
     flex-direction: column;
     max-width: 1200px;
     margin: 0 auto;
+    background-color: #fff;
 }
 
 /* Update carousel to have a fixed height */
@@ -248,4 +249,9 @@ body {
     height: 55vh;
     min-height: 55vh;
     max-height: 55vh;
+}
+
+/* Fix body class in HTML */
+body.bg-black {
+    background-color: #fff !important;
 } 
