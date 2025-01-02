@@ -31,17 +31,10 @@ document.addEventListener('scroll', () => {
   }
   
   // Handle content focus
-  if (scrollPosition > window.innerHeight * 0.2) { // 20% of viewport height
-    carousel.classList.add('minimized');
-    contentSection.classList.add('focus-active');
-    
-    // Ensure content is visible
-    if (!contentSection.hasAttribute('data-scrolled')) {
-      contentSection.setAttribute('data-scrolled', 'true');
-      contentSection.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'start'
-      });
+  if (scrollPosition > 200) { // Use fixed pixel value instead of viewport percentage
+    if (!carousel.classList.contains('minimized')) {
+      carousel.classList.add('minimized');
+      contentSection.classList.add('focus-active');
     }
   } else {
     carousel.classList.remove('minimized');

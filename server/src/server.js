@@ -178,18 +178,36 @@ server.post("/generate-description", async (req, res) => {
       return res.json({ description: cached });
     }
 
-    const prompt = `Create an engaging description about the ${animalName} (${scientificName}) using the following markdown structure:
+    const prompt = `Create a comprehensive description about the ${animalName} (${scientificName}). Start with a detailed overview paragraph without any title, then continue with the following sections:
 
-# Overview
-Write a paragraph introducing the animal and its most distinctive physical features. Include size, appearance, and any unique characteristics that make it immediately recognizable.
+${animalName} is... [Start directly with the overview paragraph describing physical features, size, and distinctive characteristics]
 
 # Habitat & Distribution
-Describe where this animal lives, its preferred environment, and its geographical distribution.
+Write a detailed account of where this animal lives, including:
+- Preferred ecosystems and environments
+- Geographical range and distribution patterns
+- Adaptations to their habitat
+- Any seasonal migration patterns
 
 # Behavior & Lifestyle
-Detail interesting behaviors, social structure, and daily activities. Include hunting/feeding habits if relevant.
+Provide comprehensive information about:
+- Daily activities and routines
+- Social structure and group dynamics
+- Hunting or feeding strategies
+- Mating rituals and reproductive behavior
+- Parental care and family life
+- Communication methods
+- Interactions with other species
 
-Keep each section concise but informative, using clear and engaging language suitable for a general audience. Use proper markdown formatting with the exact headings as shown above.`;
+# Conservation Status
+Detail the current status of the species:
+- Population trends
+- Major threats to survival
+- Conservation efforts
+- Role in the ecosystem
+- Human impact and coexistence
+
+Keep the writing engaging and informative, using clear language suitable for a general audience. Make each section detailed but concise, focusing on the most interesting and important aspects of the animal's life and behavior.`;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`, {
       method: 'POST',

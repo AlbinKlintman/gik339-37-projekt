@@ -9,7 +9,8 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 /* Refined navbar */
@@ -39,7 +40,7 @@ body {
 /* Polished carousel */
 .carousel {
     width: 100%;
-    height: 65vh;
+    height: 55vh;
     background-color: #000;
     margin-bottom: 0;
     position: relative;
@@ -47,15 +48,16 @@ body {
 }
 
 .carousel-item {
-    height: 65vh;
+    height: 100%;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .carousel-item img {
-    height: 65vh;
+    height: 100%;
     width: 100%;
     object-fit: cover;
     filter: brightness(0.9);
-    transition: none;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .carousel-item:hover img {
@@ -98,10 +100,9 @@ body {
     background-color: #fff;
     color: #000;
     position: relative;
-    height: calc(100vh - 55vh);
-    overflow-y: auto;
+    min-height: 45vh;
+    overflow-y: visible;
     scroll-margin-top: 80px;
-    scroll-behavior: smooth;
 }
 
 .content-section::before {
@@ -301,12 +302,13 @@ body {
 /* Container adjustments */
 .container-fluid {
     padding: 0;
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     max-width: 1200px;
     margin: 0 auto;
     background-color: #fff;
+    position: relative;
 }
 
 /* Update carousel to have a fixed height */
@@ -369,12 +371,13 @@ body.bg-black {
 
 /* Add transition for minimized carousel */
 .carousel.minimized {
-    height: 30vh !important;
-    min-height: 30vh !important;
+    height: 30vh;
 }
 
-.carousel.minimized .carousel-item,
+.carousel.minimized .carousel-item {
+    height: 30vh;
+}
+
 .carousel.minimized .carousel-item img {
-    height: 30vh !important;
-    min-height: 30vh !important;
+    height: 30vh;
 } 
