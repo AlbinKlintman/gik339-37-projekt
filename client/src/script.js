@@ -91,31 +91,53 @@ async function deleteAnimal(id) {
   }
 }
 
-// Add event listener for form submission
-document.getElementById('animalForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
+// Update the form submission handler
+document.getElementById('animalForm').addEventListener('submit', async (event) => {
+  event.preventDefault();
   
-  const formData = {
-    name: document.getElementById('name').value,
-    species: document.getElementById('species').value,
-    funFact: document.getElementById('funFact').value,
-    diet: document.getElementById('diet').value,
-    category: document.getElementById('category').value,
-    habitat: document.getElementById('habitat').value,
-    lifespan: parseInt(document.getElementById('lifespan').value)
-  };
-
+  const name = document.getElementById('name').value.trim();
+  const submitButton = event.target.querySelector('button[type="submit"]');
+  
   try {
-    const response = await addAnimal(formData);
-    if (response) {
-      showFeedback('Animal added successfully!');
-      await refreshAnimalList();
-      const modal = bootstrap.Modal.getInstance(document.getElementById('animalFormModal'));
-      modal.hide();
+    // Show loading state
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i class="bi bi-hourglass-split"></i> Searching...';
+
+    // Send the name to the server and let it handle the iNaturalist query
+    const response = await fetch(`${API_URL}/animals`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to add animal');
     }
+
+    const result = await response.json();
+    
+    // Close modal and refresh list
+    const modal = bootstrap.Modal.getInstance(document.getElementById('animalFormModal'));
+    modal.hide();
+    
+    // Show success message
+    showFeedback(`Successfully added ${result.name}!`);
+    
+    // Refresh the animal list
+    await refreshAnimalList();
+    
+    // Reset form
+    event.target.reset();
   } catch (error) {
-    console.error('Error submitting form:', error);
+    console.error('Error:', error);
     showFeedback(error.message);
+  } finally {
+    // Reset button state
+    submitButton.disabled = false;
+    submitButton.innerHTML = 'Search & Add';
   }
 });
 
@@ -338,4 +360,9 @@ function showAnimalDetails(animal) {
   
   const modal = new bootstrap.Modal(document.getElementById('animalDetailsModal'));
   modal.show();
+}
+
+// Remove the edit functionality since we're auto-fetching everything
+function showEditForm(id) {
+  showFeedback('To update this animal, please delete it and add it again with the new name.');
 }

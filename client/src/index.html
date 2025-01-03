@@ -64,53 +64,19 @@
           <form id="animalForm">
             <input type="hidden" id="animalId">
             <div class="mb-3">
-              <label for="name" class="form-label">Common Name</label>
-              <input type="text" class="form-control" id="name" required>
-            </div>
-            <div class="mb-3">
-              <label for="species" class="form-label">Scientific Name</label>
-              <input type="text" class="form-control" id="species" required>
-            </div>
-            <div class="mb-3">
-              <label for="funFact" class="form-label">Fun Fact</label>
-              <textarea class="form-control" id="funFact" rows="2" required></textarea>
-            </div>
-            <div class="mb-3">
-              <label for="diet" class="form-label">Diet</label>
-              <select class="form-select" id="diet" required>
-                <option value="">Select diet type</option>
-                <option value="carnivore">Carnivore</option>
-                <option value="herbivore">Herbivore</option>
-                <option value="omnivore">Omnivore</option>
-              </select>
-            </div>
-            <div class="mb-3">
-              <label for="category" class="form-label">Category</label>
-              <select class="form-select" id="category" required>
-                <option value="">Select a category</option>
-                <option value="mammals">Mammals</option>
-                <option value="birds">Birds</option>
-                <option value="reptiles">Reptiles</option>
-                <option value="marine">Marine Life</option>
-                <option value="insects">Insects</option>
-              </select>
-            </div>
-            <div class="mb-3">
-              <label for="habitat" class="form-label">Primary Habitat</label>
-              <select class="form-select" id="habitat" required>
-                <option value="">Select habitat type</option>
-                <option value="terrestrial">Terrestrial</option>
-                <option value="aquatic">Aquatic</option>
-                <option value="aerial">Aerial</option>
-              </select>
-            </div>
-            <div class="mb-3">
-              <label for="lifespan" class="form-label">Average Lifespan (years)</label>
-              <input type="number" class="form-control" id="lifespan" min="0" required>
+              <label for="name" class="form-label">Animal Name</label>
+              <input type="text" 
+                     class="form-control" 
+                     id="name" 
+                     required 
+                     placeholder="Enter common or scientific name (e.g., Lion or Panthera leo)">
+              <small class="form-text text-muted">
+                Enter the animal name and we'll fetch its details from iNaturalist
+              </small>
             </div>
             <div class="text-end">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-primary">Save</button>
+              <button type="submit" class="btn btn-primary">Search & Add</button>
             </div>
           </form>
         </div>

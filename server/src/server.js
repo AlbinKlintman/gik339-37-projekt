@@ -331,64 +331,75 @@ async function getImageFromINaturalist(speciesName) {
   }
 }
 
-// Update the POST endpoint with better logging
+// Update the POST endpoint to handle the simplified form
 server.post('/animals', async (req, res) => {
-  console.log('📝 Received POST request:', {
-    body: req.body,
-    timestamp: new Date().toISOString()
-  });
+  const { name } = req.body;
   
-  const { name, species, category } = req.body;
-  
+  if (!name) {
+    res.status(400).json({ error: 'Name is required' });
+    return;
+  }
+
   try {
-    console.log('🔍 Attempting to fetch image for:', species);
-    const imageUrl = await getImageFromINaturalist(species);
+    console.log(`🔍 Searching for animal: ${name}`);
     
-    if (!imageUrl) {
-      console.log('❌ No image URL returned for:', species);
-      res.status(400).json({ error: 'Could not find an image for this species. Please verify the species name.' });
-      return;
+    // Search iNaturalist for the species
+    const searchUrl = `https://api.inaturalist.org/v1/taxa/autocomplete?q=${encodeURIComponent(name)}&per_page=1`;
+    const response = await fetch(searchUrl);
+    const data = await response.json();
+
+    if (!data.results?.[0]) {
+      throw new Error(`No results found for: ${name}`);
     }
 
-    console.log('✅ Successfully retrieved image:', imageUrl);
+    const species = data.results[0];
+    const imageUrl = await getImageFromINaturalist(species.name);
     
-    const sql = 'INSERT INTO animals (name, species, category, image_url) VALUES (?, ?, ?, ?)';
-    console.log('💾 Executing SQL:', {
-      sql,
-      params: [name, species, category, imageUrl]
+    if (!imageUrl) {
+      throw new Error(`No image found for: ${name}`);
+    }
+
+    // Prepare animal data from iNaturalist response
+    const animalData = {
+      name: species.preferred_common_name || species.name,
+      species: species.name,
+      category: species.iconic_taxon_name?.toLowerCase() || 'unknown',
+      funFact: `This ${species.preferred_common_name || species.name} has been observed ${species.observations_count} times on iNaturalist!`,
+      diet: species.preferred_establishment_means || 'unknown',
+      habitat: species.establishment_means || 'unknown',
+      lifespan: 0,
+      image_url: imageUrl
+    };
+
+    // Insert into database
+    const sql = `INSERT INTO animals (name, species, category, funFact, diet, habitat, lifespan, image_url) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+    
+    await new Promise((resolve, reject) => {
+      db.run(sql, [
+        animalData.name,
+        animalData.species,
+        animalData.category,
+        animalData.funFact,
+        animalData.diet,
+        animalData.habitat,
+        animalData.lifespan,
+        animalData.image_url
+      ], function(err) {
+        if (err) reject(err);
+        else {
+          animalData.id = this.lastID;
+          resolve();
+        }
+      });
     });
 
-    db.run(sql, [name, species, category, imageUrl], function(err) {
-      if (err) {
-        console.error('❌ Database error:', {
-          error: err.message,
-          stack: err.stack,
-          sql
-        });
-        res.status(500).json({ error: err.message });
-        return;
-      }
-      
-      const result = {
-        id: this.lastID,
-        name,
-        species,
-        category,
-        image_url: imageUrl
-      };
-      
-      console.log('✅ Successfully created animal:', result);
-      res.json(result);
-    });
+    console.log(`✅ Successfully added ${animalData.name}`);
+    res.json(animalData);
   } catch (error) {
-    console.error('❌ Server error:', {
-      error: error.message,
-      stack: error.stack,
-      requestBody: req.body
-    });
+    console.error('Error adding animal:', error);
     res.status(400).json({ 
-      error: 'Failed to create animal entry',
-      details: error.message 
+      error: `Failed to add animal: ${error.message}` 
     });
   }
 });
