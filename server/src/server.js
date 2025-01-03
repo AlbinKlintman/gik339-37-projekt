@@ -1,16 +1,19 @@
 console.log("start of server");
 
-const sqlite = require("sqlite3").verbose();
+const sqlite3 = require("sqlite3").verbose();
 const express = require('express');
-
-const sqlite3 = require('sqlite3').verbose();
+const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
-const fetch = require('node-fetch');
-const cors = require('cors');
 
 const server = express();
-const db = new sqlite3.Database('./src/animals.db');
+const db = new sqlite3.Database('./src/animals.db', (err) => {
+  if (err) {
+    console.error('Error opening database:', err);
+  } else {
+    console.log('Successfully connected to database');
+  }
+});
 
 // Middleware
 server.use(cors({
@@ -27,114 +30,22 @@ server.use(express.urlencoded({ extended: true }));
 const initializeDatabase = () => {
   console.log('Initializing database...');
   
-  db.run("DROP TABLE IF EXISTS animals", async (err) => {
-    if (err) {
-      console.error('Error dropping table:', err);
-      return;
-    }
-    
-    console.log('Successfully dropped existing table');
-    
+  try {
     const schemaSQL = fs.readFileSync(path.join(__dirname, 'animals.sql'), 'utf8');
     
-    db.run(schemaSQL, async (err) => {
+    db.exec(schemaSQL, (err) => {
       if (err) {
-        console.error('Error creating table:', err);
-        return;
+        console.error('Error initializing database:', err);
+      } else {
+        console.log('Database initialized successfully');
       }
-      console.log('Successfully created new table with updated schema');
-      
-      // Populate default animals after table is created
-      await populateDefaultAnimals();
     });
-  });
+  } catch (error) {
+    console.error('Error reading schema file:', error);
+  }
 };
 
-// Add this after initializeDatabase function
-async function populateDefaultAnimals() {
-  console.log('Populating default animals...');
-  
-  const defaultAnimals = [
-    {
-      name: 'African Lion',
-      species: 'Panthera leo',
-      category: 'mammals',
-      funFact: 'Male lions can sleep up to 20 hours a day!',
-      diet: 'Carnivore',
-      habitat: 'Savanna',
-      lifespan: 15
-    },
-    {
-      name: 'Emperor Penguin',
-      species: 'Aptenodytes forsteri',
-      category: 'birds',
-      funFact: 'Can dive up to 500 meters deep in search of food',
-      diet: 'Piscivore',
-      habitat: 'Antarctic',
-      lifespan: 20
-    },
-    {
-      name: 'Giant Pacific Octopus',
-      species: 'Enteroctopus dofleini',
-      category: 'marine',
-      funFact: 'Has three hearts and blue blood',
-      diet: 'Carnivore',
-      habitat: 'Marine',
-      lifespan: 5
-    },
-    {
-      name: 'Red-Eyed Tree Frog',
-      species: 'Agalychnis callidryas',
-      category: 'amphibians',
-      funFact: 'Their eyes are red to camouflage during the day',
-      diet: 'Insectivore',
-      habitat: 'Tropical',
-      lifespan: 5
-    },
-    {
-      name: 'Monarch Butterfly',
-      species: 'Danaus plexippus',
-      category: 'insects',
-      funFact: 'Can travel up to 3000 miles during migration',
-      diet: 'Herbivore',
-      habitat: 'Temperate',
-      lifespan: 1
-    }
-  ];
-
-  for (const animal of defaultAnimals) {
-    try {
-      console.log(`Adding default animal: ${animal.name}`);
-      const imageUrl = await getImageFromINaturalist(animal.species);
-      
-      const sql = `INSERT INTO animals (name, species, category, funFact, diet, habitat, lifespan, image_url) 
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-      
-      await new Promise((resolve, reject) => {
-        db.run(sql, [
-          animal.name,
-          animal.species,
-          animal.category,
-          animal.funFact,
-          animal.diet,
-          animal.habitat,
-          animal.lifespan,
-          imageUrl
-        ], (err) => {
-          if (err) reject(err);
-          else resolve();
-        });
-      });
-      
-      console.log(`✅ Successfully added ${animal.name}`);
-    } catch (error) {
-      console.error(`Failed to add ${animal.name}:`, error);
-    }
-  }
-  console.log('Finished populating default animals');
-}
-
-// Call initializeDatabase when server starts
+// Initialize database when server starts
 initializeDatabase();
 
 // Add this error handling middleware at the top after other middleware
