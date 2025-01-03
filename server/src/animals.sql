@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS animals (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
-  species TEXT NOT NULL,
+  species TEXT NOT NULL UNIQUE,
   funFact TEXT,
   diet TEXT NOT NULL,
   category TEXT NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS animals (
   image_url TEXT
 );
 
--- Insert initial animals only if they don't exist
+-- Insert initial animals only if they don't exist (based on species)
 INSERT OR IGNORE INTO animals (name, species, category, funFact, diet, habitat, lifespan) 
 VALUES 
     ('African Lion', 'Panthera leo', 'mammals', 'Male lions can sleep up to 20 hours a day!', 'Carnivore', 'Savanna', 15),
