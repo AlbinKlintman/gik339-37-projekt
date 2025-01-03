@@ -36,6 +36,7 @@ async function fetchAnimals() {
 // Replace the mock addAnimal function
 async function addAnimal(animal) {
   try {
+    console.log('Sending animal data:', animal);
     const response = await fetch(`${API_URL}/animals`, {
       method: 'POST',
       headers: {
@@ -44,10 +45,14 @@ async function addAnimal(animal) {
       body: JSON.stringify(animal)
     });
     
-    if (!response.ok) throw new Error('Failed to add animal');
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to add animal');
+    }
+    
     return await response.json();
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error adding animal:', error);
     throw error;
   }
 }
@@ -161,53 +166,37 @@ async function refreshAnimalList() {
 // Add this function to display animals
 function displayAnimals(animals) {
   const animalList = document.getElementById('animalList');
-  animalList.innerHTML = ''; // Clear current list
-  
+  animalList.innerHTML = '';
+
   animals.forEach(animal => {
-    const div = document.createElement('div');
-    div.className = 'col-md-4 mb-4';
-    div.innerHTML = `
-      <div class="card category-${animal.category}">
-        <div class="card-body">
-          <h5 class="card-title">${animal.name}</h5>
-          <h6 class="card-subtitle mb-2 text-muted">${animal.species}</h6>
-          <p class="card-text">${animal.funFact}</p>
-          <div class="d-flex justify-content-between align-items-center">
-            <div class="d-flex gap-2">
-              <span class="badge bg-primary">${animal.category}</span>
-              <span class="badge bg-secondary">${animal.habitat}</span>
-              <span class="badge bg-info">${animal.diet}</span>
-            </div>
-            <div class="btn-group">
-              <button class="btn btn-sm btn-outline-primary edit-animal" data-id="${animal.id}">
-                <i class="bi bi-pencil"></i>
-              </button>
-              <button class="btn btn-sm btn-outline-danger delete-animal" data-id="${animal.id}">
-                <i class="bi bi-trash"></i>
-              </button>
-            </div>
-          </div>
+    const card = document.createElement('div');
+    card.className = `card category-${animal.category.toLowerCase()}`;
+    
+    const imageHtml = animal.image_url 
+      ? `<img src="${animal.image_url}" class="card-img-top animal-image" alt="${animal.species}" 
+          onerror="this.src='https://via.placeholder.com/300x200?text=No+Image+Available'">`
+      : '<img src="https://via.placeholder.com/300x200?text=No+Image+Available" class="card-img-top animal-image">';
+
+    card.innerHTML = `
+      ${imageHtml}
+      <div class="card-body">
+        <h5 class="card-title">${animal.name}</h5>
+        <p class="card-text">
+          <span class="badge bg-secondary">${animal.species}</span>
+          <span class="badge bg-info">${animal.category}</span>
+        </p>
+        <div class="btn-group">
+          <button class="btn btn-sm btn-outline-primary view-details" data-id="${animal.id}">
+            <i class="bi bi-eye"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger delete-animal" data-id="${animal.id}">
+            <i class="bi bi-trash"></i>
+          </button>
         </div>
       </div>
     `;
-    animalList.appendChild(div);
-  });
 
-  // Add event listeners for edit and delete buttons
-  document.querySelectorAll('.edit-animal').forEach(button => {
-    button.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const id = button.dataset.id;
-      editAnimal(id);
-    });
-  });
-
-  document.querySelectorAll('.delete-animal').forEach(button => {
-    button.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const id = button.dataset.id;
-      confirmDelete(id);
-    });
+    animalList.appendChild(card);
   });
 }
 

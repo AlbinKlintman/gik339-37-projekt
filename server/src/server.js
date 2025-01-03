@@ -2,9 +2,16 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const fs = require('fs');
 const path = require('path');
+const fetch = require('node-fetch');
+const cors = require('cors');
 
 const server = express();
 const db = new sqlite3.Database('./src/animals.db');
+
+// Middleware
+server.use(cors());
+server.use(express.json());
+server.use(express.urlencoded({ extended: true }));
 
 // Initialize database with schema
 const initializeDatabase = () => {
@@ -32,11 +39,11 @@ initializeDatabase();
 
 server
   .use(express.json())
-  .use(express.urlencoded({ extended: false }))
+  .use(express.urlencoded({ extended: true }))
   .use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", '*');
-    res.header("Access-Control-Allow-Headers", '*');
-    res.header("Access-Control-Allow-Methods", '*');
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
 
     next();
 });
@@ -100,51 +107,58 @@ server.get('/animals/:id', (req, res) => {
   });
 });
 
-// POST new animal
-server.post('/animals', (req, res) => {
-  console.log('POST /animals request received', {
-    body: req.body
-  });
-  
-  const { name, species, funFact, diet, category, habitat, lifespan, imageUrl } = req.body;
-  
-  // Validate required fields
-  const requiredFields = ['name', 'species', 'diet', 'category', 'habitat'];
-  const missingFields = requiredFields.filter(field => !req.body[field]);
-  
-  if (missingFields.length > 0) {
-    console.error('Missing required fields:', missingFields);
-    res.status(400).json({
-      error: 'Missing required fields',
-      details: `Missing: ${missingFields.join(', ')}`
-    });
-    return;
-  }
-
-  const sql = `INSERT INTO animals (name, species, funFact, diet, category, habitat, lifespan, imageQuery) 
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-  
-  db.run(sql, [name, species, funFact, diet, category, habitat, lifespan, imageUrl], function(err) {
-    if (err) {
-      console.error('Database error in POST /animals:', {
-        message: err.message,
-        stack: err.stack,
-        sql: sql,
-        values: [name, species, funFact, diet, category, habitat, lifespan, imageUrl]
-      });
-      res.status(500).json({ 
-        error: 'Database error',
-        details: err.message 
-      });
-      return;
-    }
+// Lägg till denna funktion för att hämta bilder från iNaturalist
+async function getImageFromINaturalist(speciesName) {
+  try {
+    console.log('Fetching image for species:', speciesName);
+    const response = await fetch(
+      `https://api.inaturalist.org/v1/taxa/autocomplete?q=${encodeURIComponent(speciesName)}`
+    );
+    const data = await response.json();
     
-    console.log('Successfully added new animal with ID:', this.lastID);
-    res.json({
-      id: this.lastID,
-      message: 'Animal added successfully'
+    if (data.results && data.results.length > 0) {
+      const defaultPhoto = data.results[0].default_photo;
+      const imageUrl = defaultPhoto ? defaultPhoto.medium_url : null;
+      console.log('Found image URL:', imageUrl);
+      return imageUrl;
+    }
+    console.log('No image found for species');
+    return null;
+  } catch (error) {
+    console.error('Error fetching from iNaturalist:', error);
+    return null;
+  }
+}
+
+// POST new animal
+server.post('/animals', async (req, res) => {
+  console.log('Received POST request:', req.body);
+  const { name, species, category } = req.body;
+  
+  try {
+    const imageUrl = await getImageFromINaturalist(species);
+    console.log('Retrieved image URL:', imageUrl);
+
+    const sql = 'INSERT INTO animals (name, species, category, image_url) VALUES (?, ?, ?, ?)';
+    db.run(sql, [name, species, category, imageUrl], function(err) {
+      if (err) {
+        console.error('Database error:', err);
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      
+      res.json({
+        id: this.lastID,
+        name,
+        species,
+        category,
+        image_url: imageUrl
+      });
     });
-  });
+  } catch (error) {
+    console.error('Server error:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // PUT update animal
@@ -184,6 +198,35 @@ server.delete('/animals/:id', (req, res) => {
     }
     res.json({ message: 'Animal deleted successfully' });
   });
+});
+
+// Uppdatera din befintliga POST-rutt för att inkludera bilder
+server.post('/api/animals', async (req, res) => {
+  const { name, species, category } = req.body;
+  
+  try {
+    const imageUrl = await getImageFromINaturalist(species);
+    
+    db.run(
+      'INSERT INTO animals (name, species, category, image_url) VALUES (?, ?, ?, ?)',
+      [name, species, category, imageUrl],
+      function(err) {
+        if (err) {
+          res.status(500).json({ error: err.message });
+          return;
+        }
+        res.json({
+          id: this.lastID,
+          name,
+          species,
+          category,
+          image_url: imageUrl
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 server.listen(3000, () => {
