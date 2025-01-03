@@ -1,17 +1,65 @@
 /* Basic styling without animations */
 body {
-    background: linear-gradient(rgba(245, 245, 220, 0.9), rgba(245, 245, 220, 0.9)),
-                url('https://images.unsplash.com/photo-1448375240586-882707db888b?q=80&w=1470&auto=format&fit=crop');
-    background-size: cover;
-    background-attachment: fixed;
-    background-position: center;
+    background: linear-gradient(
+        135deg,
+        #1a472a 0%,    /* Mörkgrön */
+        #2d5a3f 25%,   /* Mellangrön */
+        #1e6454 50%,   /* Blågrön */
+        #0d3d56 75%,   /* Mörkblå */
+        #0a2845 100%   /* Marinblå */
+    );
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    min-height: 100vh;
+    position: relative;
+}
+
+/* Lägg till dimeffekt */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(
+            circle at 50% 50%,
+            rgba(255, 255, 255, 0.1) 0%,
+            rgba(0, 0, 0, 0.3) 100%
+        );
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Animera gradienten */
+@keyframes gradientBG {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 .navbar {
+    background: linear-gradient(
+        135deg,
+        #1a472a 0%,    /* Exakt samma mörkgrön */
+        #2d5a3f 25%,   /* Exakt samma mellangrön */
+        #1e6454 50%,   /* Exakt samma blågrön */
+        #0d3d56 75%,   /* Exakt samma mörkblå */
+        #0a2845 100%   /* Exakt samma marinblå */
+    );
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;  /* Samma animation som bakgrunden */
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    padding: 1rem;
     position: relative;
-    z-index: 1001;
-    background-color: #4a5d23 !important;
-    border-bottom: 1px solid rgba(0,0,0,0.1);
+    z-index: 2000 !important;
 }
 
 .navbar-brand {
