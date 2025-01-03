@@ -36,6 +36,7 @@ async function fetchAnimals() {
 // Replace the mock addAnimal function
 async function addAnimal(animal) {
   try {
+    console.log('Sending animal data:', animal);
     const response = await fetch(`${API_URL}/animals`, {
       method: 'POST',
       headers: {
@@ -44,10 +45,14 @@ async function addAnimal(animal) {
       body: JSON.stringify(animal)
     });
     
-    if (!response.ok) throw new Error('Failed to add animal');
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to add animal');
+    }
+    
     return await response.json();
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error adding animal:', error);
     throw error;
   }
 }
@@ -86,37 +91,53 @@ async function deleteAnimal(id) {
   }
 }
 
-// Add event listener for form submission
-document.getElementById('animalForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
+// Update the form submission handler
+document.getElementById('animalForm').addEventListener('submit', async (event) => {
+  event.preventDefault();
   
-  const formData = {
-    name: document.getElementById('name').value,
-    species: document.getElementById('species').value,
-    funFact: document.getElementById('funFact').value,
-    diet: document.getElementById('diet').value,
-    category: document.getElementById('category').value,
-    habitat: document.getElementById('habitat').value,
-    lifespan: parseInt(document.getElementById('lifespan').value),
-    imageUrl: document.getElementById('imageUrl').value
-  };
-
+  const name = document.getElementById('name').value.trim();
+  const submitButton = event.target.querySelector('button[type="submit"]');
+  
   try {
-    const response = await addAnimal(formData);
-    if (response.message) {
-      // Show success message
-      showFeedback('Animal added successfully!');
-      // Clear form
-      document.getElementById('animalForm').reset();
-      // Close modal
-      const modal = bootstrap.Modal.getInstance(document.getElementById('animalFormModal'));
-      modal.hide();
-      // Refresh animal list
-      await refreshAnimalList();
+    // Show loading state
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i class="bi bi-hourglass-split"></i> Searching...';
+
+    // Send the name to the server and let it handle the iNaturalist query
+    const response = await fetch(`${API_URL}/animals`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to add animal');
     }
+
+    const result = await response.json();
+    
+    // Close modal and refresh list
+    const modal = bootstrap.Modal.getInstance(document.getElementById('animalFormModal'));
+    modal.hide();
+    
+    // Show success message
+    showFeedback(`Successfully added ${result.name}!`);
+    
+    // Refresh the animal list
+    await refreshAnimalList();
+    
+    // Reset form
+    event.target.reset();
   } catch (error) {
-    console.error('Error adding animal:', error);
-    showFeedback('Failed to add animal. Please try again.');
+    console.error('Error:', error);
+    showFeedback(error.message);
+  } finally {
+    // Reset button state
+    submitButton.disabled = false;
+    submitButton.innerHTML = 'Search & Add';
   }
 });
 
@@ -161,53 +182,53 @@ async function refreshAnimalList() {
 // Add this function to display animals
 function displayAnimals(animals) {
   const animalList = document.getElementById('animalList');
-  animalList.innerHTML = ''; // Clear current list
+  animalList.innerHTML = '';
   
   animals.forEach(animal => {
-    const div = document.createElement('div');
-    div.className = 'col-md-4 mb-4';
-    div.innerHTML = `
-      <div class="card category-${animal.category}">
+    const card = document.createElement('div');
+    card.className = 'col-md-4 mb-4';
+    
+    // Add error handling and fallback for images
+    const imageUrl = animal.image_url || 'https://via.placeholder.com/300x200?text=No+Image+Available';
+    
+    card.innerHTML = `
+      <div class="card h-100">
+        <div class="card-img-wrapper" style="height: 200px; overflow: hidden;">
+          <img src="${imageUrl}" 
+               class="card-img-top" 
+               alt="${animal.species}"
+               style="object-fit: cover; height: 100%; width: 100%;"
+               onerror="this.onerror=null; this.src='https://via.placeholder.com/300x200?text=Image+Load+Error';">
+        </div>
         <div class="card-body">
           <h5 class="card-title">${animal.name}</h5>
           <h6 class="card-subtitle mb-2 text-muted">${animal.species}</h6>
-          <p class="card-text">${animal.funFact}</p>
-          <div class="d-flex justify-content-between align-items-center">
-            <div class="d-flex gap-2">
-              <span class="badge bg-primary">${animal.category}</span>
-              <span class="badge bg-secondary">${animal.habitat}</span>
-              <span class="badge bg-info">${animal.diet}</span>
-            </div>
-            <div class="btn-group">
-              <button class="btn btn-sm btn-outline-primary edit-animal" data-id="${animal.id}">
-                <i class="bi bi-pencil"></i>
-              </button>
-              <button class="btn btn-sm btn-outline-danger delete-animal" data-id="${animal.id}">
-                <i class="bi bi-trash"></i>
-              </button>
-            </div>
+          <div class="mb-2">
+            <span class="badge bg-primary">${animal.category}</span>
+            <span class="badge bg-secondary">${animal.habitat || 'Unknown habitat'}</span>
+          </div>
+          <p class="card-text">
+            ${animal.funFact ? `<em>"${animal.funFact}"</em>` : ''}
+          </p>
+          <div class="card-text small text-muted">
+            <p class="mb-1">Diet: ${animal.diet || 'Unknown'}</p>
+            <p class="mb-1">Lifespan: ${animal.lifespan ? animal.lifespan + ' years' : 'Unknown'}</p>
+          </div>
+        </div>
+        <div class="card-footer bg-transparent border-top-0">
+          <div class="btn-group w-100">
+            <button class="btn btn-outline-primary" onclick="editAnimal(${animal.id})">
+              <i class="bi bi-pencil"></i> Edit
+            </button>
+            <button class="btn btn-outline-danger" onclick="confirmDelete(${animal.id})">
+              <i class="bi bi-trash"></i> Delete
+            </button>
           </div>
         </div>
       </div>
     `;
-    animalList.appendChild(div);
-  });
-
-  // Add event listeners for edit and delete buttons
-  document.querySelectorAll('.edit-animal').forEach(button => {
-    button.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const id = button.dataset.id;
-      editAnimal(id);
-    });
-  });
-
-  document.querySelectorAll('.delete-animal').forEach(button => {
-    button.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const id = button.dataset.id;
-      confirmDelete(id);
-    });
+    
+    animalList.appendChild(card);
   });
 }
 
@@ -249,7 +270,6 @@ async function editAnimal(id) {
     document.getElementById('category').value = animal.category;
     document.getElementById('habitat').value = animal.habitat;
     document.getElementById('lifespan').value = animal.lifespan;
-    document.getElementById('imageUrl').value = animal.imageQuery;
     
     // Update modal title
     document.getElementById('modalTitle').textContent = 'Edit Species';
@@ -285,4 +305,64 @@ function confirmDelete(id) {
   });
   
   modal.show();
+}
+
+function populateForm(animal) {
+  document.getElementById('animalId').value = animal.id;
+  document.getElementById('name').value = animal.name;
+  document.getElementById('species').value = animal.species;
+  document.getElementById('funFact').value = animal.funFact;
+  document.getElementById('diet').value = animal.diet;
+  document.getElementById('category').value = animal.category;
+  document.getElementById('habitat').value = animal.habitat;
+  document.getElementById('lifespan').value = animal.lifespan;
+  
+  document.getElementById('modalTitle').textContent = 'Edit Species';
+}
+
+// Also update the details view function
+function showAnimalDetails(animal) {
+  const detailsModalTitle = document.getElementById('detailsModalTitle');
+  const detailsModalBody = document.getElementById('detailsModalBody');
+  
+  detailsModalTitle.textContent = `${animal.name} (${animal.species})`;
+  
+  detailsModalBody.innerHTML = `
+    <div class="row">
+      <div class="col-md-6">
+        <img src="${animal.image_url || 'https://via.placeholder.com/400x300?text=No+Image+Available'}" 
+             class="img-fluid rounded mb-3" 
+             alt="${animal.species}"
+             onerror="this.onerror=null; this.src='https://via.placeholder.com/400x300?text=Image+Load+Error';">
+      </div>
+      <div class="col-md-6">
+        <dl class="row">
+          <dt class="col-sm-4">Category:</dt>
+          <dd class="col-sm-8">${animal.category}</dd>
+          
+          <dt class="col-sm-4">Habitat:</dt>
+          <dd class="col-sm-8">${animal.habitat || 'Unknown'}</dd>
+          
+          <dt class="col-sm-4">Diet:</dt>
+          <dd class="col-sm-8">${animal.diet || 'Unknown'}</dd>
+          
+          <dt class="col-sm-4">Lifespan:</dt>
+          <dd class="col-sm-8">${animal.lifespan ? `${animal.lifespan} years` : 'Unknown'}</dd>
+        </dl>
+        ${animal.funFact ? `
+          <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Fun Fact: ${animal.funFact}
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  `;
+  
+  const modal = new bootstrap.Modal(document.getElementById('animalDetailsModal'));
+  modal.show();
+}
+
+// Remove the edit functionality since we're auto-fetching everything
+function showEditForm(id) {
+  showFeedback('To update this animal, please delete it and add it again with the new name.');
 }
