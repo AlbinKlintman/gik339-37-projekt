@@ -1,47 +1,24 @@
+console.log("start of server");
+
+const sqlite = require("sqlite3").verbose();
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
-const fs = require('fs');
-const path = require('path');
+const cors = require('cors');
 
 const server = express();
-const db = new sqlite3.Database('./src/animals.db');
-
-// Initialize database with schema
-const initializeDatabase = () => {
-  const schemaSQL = fs.readFileSync(path.join(__dirname, 'animals.sql'), 'utf8');
-  
-  db.serialize(() => {
-    // Split the SQL file into separate statements
-    const statements = schemaSQL.split(';').filter(stmt => stmt.trim());
-    
-    statements.forEach(statement => {
-      if (statement.trim()) {
-        db.run(statement + ';', (err) => {
-          if (err) {
-            console.error('Error executing SQL statement:', err);
-            console.error('Statement:', statement);
-          }
-        });
-      }
-    });
-  });
-};
-
-// Initialize database when server starts
-initializeDatabase();
-
-server
-  .use(express.json())
-  .use(express.urlencoded({ extended: false }))
-  .use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", '*');
-    res.header("Access-Control-Allow-Headers", '*');
-    res.header("Access-Control-Allow-Methods", '*');
-
-    next();
+const db = new sqlite.Database('./src/animals.db', (err) => {
+  if (err) {
+    console.error('Error opening database:', err);
+  } else {
+    console.log('Successfully connected to database');
+  }
 });
 
-// Add this error handling middleware at the top after other middleware
+// Middleware setup
+server.use(cors());
+server.use(express.json());
+server.use(express.urlencoded({ extended: false }));
+
+// Error handling middleware
 server.use((err, req, res, next) => {
   console.error('Server Error:', {
     message: err.message,
@@ -186,6 +163,7 @@ server.delete('/animals/:id', (req, res) => {
   });
 });
 
+// Start server
 server.listen(3000, () => {
   console.log('Server running on http://localhost:3000');
 });
