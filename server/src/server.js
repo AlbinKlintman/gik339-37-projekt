@@ -2,17 +2,19 @@ console.log("start of server");
 
 const sqlite = require("sqlite3").verbose();
 const db = new sqlite.Database('./src/animals.db');
-
 const express = require('express');
+const cors = require('cors');
 const server = express();
+
+server.use(cors());
 
 server
   .use(express.json())
   .use(express.urlencoded({ extended: false }))
   .use((req, res, next) => {
-    res.header("Access-Controll-Allow-Origin", '*');
-    res.header("Access-Controll-Allow-Headers", '*');
-    res.header("Access-Controll-Allow-Methods", '*');
+    res.header("Access-Control-Allow-Origin", '*');
+    res.header("Access-Control-Allow-Headers", '*');
+    res.header("Access-Control-Allow-Methods", '*');
 
     next();
 });
@@ -26,9 +28,10 @@ server.get("/animals", (req, res) => {
 
   db.all(sql, (err, rows) => {
     if (err) {
-      res.status(500).send(err);
+      console.error('Database error:', err);
+      res.status(500).json({ error: err.message });
     } else { 
-      res.send(rows);
+      res.json(rows);
     }
-  })
-})
+  });
+});
