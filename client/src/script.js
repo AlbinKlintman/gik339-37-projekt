@@ -95,26 +95,38 @@ async function deleteAnimal(id) {
 document.getElementById('animalForm').addEventListener('submit', async (event) => {
   event.preventDefault();
   
+  const animalId = document.getElementById('animalId').value;
   const name = document.getElementById('name').value.trim();
   const submitButton = event.target.querySelector('button[type="submit"]');
   
   try {
-    // Show loading state
     submitButton.disabled = true;
-    submitButton.innerHTML = '<i class="bi bi-hourglass-split"></i> Searching...';
+    submitButton.innerHTML = '<i class="bi bi-hourglass-split"></i> Processing...';
 
-    // Send the name to the server and let it handle the iNaturalist query
-    const response = await fetch(`${API_URL}/animals`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ name })
-    });
+    let response;
+    if (animalId) {
+      // Update existing animal
+      response = await fetch(`${API_URL}/animals/${animalId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name })
+      });
+    } else {
+      // Add new animal
+      response = await fetch(`${API_URL}/animals`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name })
+      });
+    }
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to add animal');
+      throw new Error(error.error || 'Failed to process animal');
     }
 
     const result = await response.json();
@@ -124,20 +136,21 @@ document.getElementById('animalForm').addEventListener('submit', async (event) =
     modal.hide();
     
     // Show success message
-    showFeedback(`Successfully added ${result.name}!`);
+    showFeedback(`Successfully ${animalId ? 'updated' : 'added'} ${result.name}!`);
     
     // Refresh the animal list
     await refreshAnimalList();
     
     // Reset form
     event.target.reset();
+    document.getElementById('animalId').value = '';
+    document.getElementById('modalTitle').textContent = 'Add New Species';
   } catch (error) {
     console.error('Error:', error);
-    showFeedback(error.message);
+    showFeedback(error.message, true);
   } finally {
-    // Reset button state
     submitButton.disabled = false;
-    submitButton.innerHTML = 'Search & Add';
+    submitButton.innerHTML = animalId ? 'Update' : 'Search & Add';
   }
 });
 
@@ -264,24 +277,21 @@ async function editAnimal(id) {
     // Fill the form with animal data
     document.getElementById('animalId').value = animal.id;
     document.getElementById('name').value = animal.name;
-    document.getElementById('species').value = animal.species;
-    document.getElementById('funFact').value = animal.funFact;
-    document.getElementById('diet').value = animal.diet;
-    document.getElementById('category').value = animal.category;
-    document.getElementById('habitat').value = animal.habitat;
-    document.getElementById('lifespan').value = animal.lifespan;
     
-    // Update modal title
+    // Update modal title and button
     document.getElementById('modalTitle').textContent = 'Edit Species';
+    const submitButton = document.querySelector('#animalForm button[type="submit"]');
+    submitButton.innerHTML = 'Update';
     
     // Show the modal
     const modal = new bootstrap.Modal(document.getElementById('animalFormModal'));
     modal.show();
   } catch (error) {
     console.error('Error:', error);
-    showFeedback('Failed to load animal details');
+    showFeedback('Failed to load animal details', true);
   }
 }
+
 
 function confirmDelete(id) {
   const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
@@ -362,7 +372,4 @@ function showAnimalDetails(animal) {
   modal.show();
 }
 
-// Remove the edit functionality since we're auto-fetching everything
-function showEditForm(id) {
-  showFeedback('To update this animal, please delete it and add it again with the new name.');
-}
+// Remove the showEditForm function since we now have proper edit functionality

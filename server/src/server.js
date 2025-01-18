@@ -321,34 +321,75 @@ server.post('/animals', async (req, res) => {
 
 // Update the PUT endpoint to handle image requirement
 server.put('/animals/:id', async (req, res) => {
-  const { name, species, funFact, diet, category, habitat, lifespan } = req.body;
+  const { name } = req.body;
   
+  if (!name) {
+    res.status(400).json({ error: 'Name is required' });
+    return;
+  }
+
   try {
-    const imageUrl = await getImageFromINaturalist(species);
-    if (!imageUrl) {
-      res.status(400).json({ error: 'Could not find an image for this species. Please verify the species name.' });
-      return;
+    console.log(`🔍 Searching for updated info for: ${name}`);
+    
+    // Search iNaturalist for the species
+    const searchUrl = `https://api.inaturalist.org/v1/taxa/autocomplete?q=${encodeURIComponent(name)}&per_page=1`;
+    const response = await fetch(searchUrl);
+    const data = await response.json();
+
+    if (!data.results?.[0]) {
+      throw new Error(`No results found for: ${name}`);
     }
+
+    const species = data.results[0];
+    const imageUrl = await getImageFromINaturalist(species.name);
+    
+    if (!imageUrl) {
+      throw new Error(`No image found for: ${name}`);
+    }
+
+    // Prepare updated animal data from iNaturalist response
+    const animalData = {
+      name: species.preferred_common_name || species.name,
+      species: species.name,
+      category: species.iconic_taxon_name?.toLowerCase() || 'unknown',
+      funFact: `This ${species.preferred_common_name || species.name} has been observed ${species.observations_count} times on iNaturalist!`,
+      diet: species.preferred_establishment_means || 'unknown',
+      habitat: species.establishment_means || 'unknown',
+      lifespan: 0,
+      image_url: imageUrl
+    };
 
     const sql = `UPDATE animals 
                  SET name = ?, species = ?, funFact = ?, diet = ?, 
                      category = ?, habitat = ?, lifespan = ?, image_url = ?
                  WHERE id = ?`;
     
-    db.run(sql, [name, species, funFact, diet, category, habitat, lifespan, imageUrl, req.params.id], 
-      function(err) {
-        if (err) {
-          res.status(500).json({ error: err.message });
-          return;
+    await new Promise((resolve, reject) => {
+      db.run(sql, [
+        animalData.name,
+        animalData.species,
+        animalData.funFact,
+        animalData.diet,
+        animalData.category,
+        animalData.habitat,
+        animalData.lifespan,
+        animalData.image_url,
+        req.params.id
+      ], function(err) {
+        if (err) reject(err);
+        else {
+          if (this.changes === 0) {
+            reject(new Error('Animal not found'));
+          } else {
+            resolve();
+          }
         }
-        if (this.changes === 0) {
-          res.status(404).json({ error: 'Animal not found' });
-          return;
-        }
-        res.json({ 
-          message: 'Animal updated successfully',
-          image_url: imageUrl 
-        });
+      });
+    });
+
+    res.json({ 
+      message: 'Animal updated successfully',
+      ...animalData
     });
   } catch (error) {
     console.error('Server error:', error);
