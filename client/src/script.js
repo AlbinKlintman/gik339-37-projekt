@@ -9,8 +9,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-// Replace the mock fetchAnimals function
 async function fetchAnimals() {
+
   try {
     console.log('Attempting to fetch animals from:', `${API_URL}/animals`);
     const response = await fetch(`${API_URL}/animals`);
@@ -33,7 +33,7 @@ async function fetchAnimals() {
   }
 }
 
-// Replace the mock addAnimal function
+
 async function addAnimal(animal) {
   try {
     console.log('Sending animal data:', animal);
@@ -57,7 +57,7 @@ async function addAnimal(animal) {
   }
 }
 
-// Replace the mock updateAnimal function
+
 async function updateAnimal(id, animal) {
   try {
     const response = await fetch(`${API_URL}/animals/${id}`, {
@@ -76,7 +76,7 @@ async function updateAnimal(id, animal) {
   }
 }
 
-// Replace the mock deleteAnimal function
+
 async function deleteAnimal(id) {
   try {
     const response = await fetch(`${API_URL}/animals/${id}`, {
@@ -91,7 +91,7 @@ async function deleteAnimal(id) {
   }
 }
 
-// Update the form submission handler
+
 document.getElementById('animalForm').addEventListener('submit', async (event) => {
   event.preventDefault();
   
@@ -154,7 +154,7 @@ document.getElementById('animalForm').addEventListener('submit', async (event) =
   }
 });
 
-// Add this helper function to show feedback
+
 function showFeedback(message, isError = false) {
   const feedbackModal = new bootstrap.Modal(document.getElementById('feedbackModal'));
   const messageElement = document.getElementById('feedbackMessage');
@@ -170,7 +170,7 @@ function showFeedback(message, isError = false) {
   feedbackModal.show();
 }
 
-// Add this helper function to refresh the animal list
+
 async function refreshAnimalList() {
   try {
     console.log('Refreshing animal list...');
@@ -192,7 +192,7 @@ async function refreshAnimalList() {
   }
 }
 
-// Add this function to display animals
+
 function displayAnimals(animals) {
   const animalList = document.getElementById('animalList');
   animalList.innerHTML = '';
@@ -201,7 +201,6 @@ function displayAnimals(animals) {
     const card = document.createElement('div');
     card.className = 'col-md-4 mb-4';
     
-    // Add error handling and fallback for images
     const imageUrl = animal.image_url || 'https://via.placeholder.com/300x200?text=No+Image+Available';
     
     card.innerHTML = `
@@ -245,28 +244,8 @@ function displayAnimals(animals) {
   });
 }
 
-// Add this function to create animal cards
-function createAnimalCard(animal) {
-  const div = document.createElement('div');
-  div.className = 'col-md-4 mb-4';
-  div.innerHTML = `
-    <div class="card category-${animal.category}">
-      <div class="card-body">
-        <h5 class="card-title">${animal.name}</h5>
-        <h6 class="card-subtitle mb-2 text-muted">${animal.species}</h6>
-        <p class="card-text">${animal.funFact}</p>
-        <div class="d-flex gap-2">
-          <span class="badge bg-primary">${animal.category}</span>
-          <span class="badge bg-secondary">${animal.habitat}</span>
-          <span class="badge bg-info">${animal.diet}</span>
-        </div>
-      </div>
-    </div>
-  `;
-  return div;
-}
 
-// Add these helper functions for edit and delete functionality
+
 async function editAnimal(id) {
   try {
     const response = await fetch(`${API_URL}/animals/${id}`);
@@ -317,59 +296,8 @@ function confirmDelete(id) {
   modal.show();
 }
 
-function populateForm(animal) {
-  document.getElementById('animalId').value = animal.id;
-  document.getElementById('name').value = animal.name;
-  document.getElementById('species').value = animal.species;
-  document.getElementById('funFact').value = animal.funFact;
-  document.getElementById('diet').value = animal.diet;
-  document.getElementById('category').value = animal.category;
-  document.getElementById('habitat').value = animal.habitat;
-  document.getElementById('lifespan').value = animal.lifespan;
-  
-  document.getElementById('modalTitle').textContent = 'Edit Species';
-}
 
-// Also update the details view function
-function showAnimalDetails(animal) {
-  const detailsModalTitle = document.getElementById('detailsModalTitle');
-  const detailsModalBody = document.getElementById('detailsModalBody');
-  
-  detailsModalTitle.textContent = `${animal.name} (${animal.species})`;
-  
-  detailsModalBody.innerHTML = `
-    <div class="row">
-      <div class="col-md-6">
-        <img src="${animal.image_url || 'https://via.placeholder.com/400x300?text=No+Image+Available'}" 
-             class="img-fluid rounded mb-3" 
-             alt="${animal.species}"
-             onerror="this.onerror=null; this.src='https://via.placeholder.com/400x300?text=Image+Load+Error';">
-      </div>
-      <div class="col-md-6">
-        <dl class="row">
-          <dt class="col-sm-4">Category:</dt>
-          <dd class="col-sm-8">${animal.category}</dd>
-          
-          <dt class="col-sm-4">Habitat:</dt>
-          <dd class="col-sm-8">${animal.habitat || 'Unknown'}</dd>
-          
-          <dt class="col-sm-4">Diet:</dt>
-          <dd class="col-sm-8">${animal.diet || 'Unknown'}</dd>
-          
-          <dt class="col-sm-4">Lifespan:</dt>
-          <dd class="col-sm-8">${animal.lifespan ? `${animal.lifespan} years` : 'Unknown'}</dd>
-        </dl>
-        ${animal.funFact ? `
-          <div class="alert alert-info">
-            <i class="bi bi-info-circle"></i> Fun Fact: ${animal.funFact}
-          </div>
-        ` : ''}
-      </div>
-    </div>
-  `;
-  
-  const modal = new bootstrap.Modal(document.getElementById('animalDetailsModal'));
-  modal.show();
-}
 
-// Remove the showEditForm function since we now have proper edit functionality
+
+
+
