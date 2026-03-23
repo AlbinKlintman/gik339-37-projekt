@@ -9,13 +9,14 @@ A full-stack web application that allows users to search for animals and instant
 *Figure 1: The main dashboard showcasing the species collection.*
 
 ![Adding a New Species](docs/media/Animal_Exlorer_2.png)
-*Figure 2: Using the search modal to add a new species (e.g., "koala").*
+*Figure 2: Using the search modal to add a new species (e.g., "horse").*
 
 ![Updated Collection](docs/media/Animal_Explorer_3.png)
 *Figure 3: The dashboard after successfully adding new animals.*
 
 ### Demonstration Video
-[Watch the Demonstration Video](docs/media/Animal_Kingdom_Explorer_Video.mp4)
+ [![Watch the Demonstration Video](docs/media/Animal_Explorer_1.png)](docs/media/Animal_Kingdom_Explorer_Video.mp4)
+ *Click the image above to watch the demonstration video.*
 
 ## ✨ Features
 
