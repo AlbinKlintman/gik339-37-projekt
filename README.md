@@ -15,7 +15,11 @@ A full-stack web application that allows users to search for animals and instant
 *Figure 3: The dashboard after successfully adding new animals.*
 
 ### Demonstration Video
- [![Watch the Demonstration Video](docs/media/Animal_Explorer_1.png)](docs/media/Animal_Kingdom_Explorer_Video.mp4)
+ 
+
+https://github.com/user-attachments/assets/cb2837f5-776b-4b69-9f64-0c550f54e45c
+
+
  *Click the image above to watch the demonstration video.*
 
 ## ✨ Features
